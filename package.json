@@ -23,6 +23,9 @@
   "dependencies": {
     "socket.io": "~0.9.14",
     "mysql": "~2.0.0-alpha8",
-    "wrench": "~1.5.1"
+    "wrench": "~1.5.1",
+    "underscore": "~1.4.4",
+    "commander": "~1.1.1",
+    "express": "~3.2.2"
   }
 }
