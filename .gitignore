@@ -3,6 +3,7 @@ debug.bat
 workshop/
 tools/
 node_modules/
+npm-debug.log
 *.sublime-project
 *.sublime-workspace
 config.js
