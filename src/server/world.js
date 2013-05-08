@@ -43,10 +43,12 @@ var walk = function(dir, done) {
 
 var Class = require('../common/class'),
     Helper = require('../common/gameHelper'),
+    Perlin = require('../common/perlin'),
     log = require('util').log,
     mkdirp = require('mkdirp'), // previously was in fsi module
     fs = require('fs'),
-    _ = require('underscore');
+    _ = require('underscore'),
+    THREE = require('three');
 
 var World = Class.extend({
     awake: false,
@@ -468,7 +470,7 @@ var World = Class.extend({
         var offset_z = coordsToWorld.z;
 
         // Generate a cell inside a zone and save it
-        var perlin = new ImprovedNoise();
+        var perlin = new Perlin.ImprovedNoise();
         var quality = 1;
         var r = 1;
 
@@ -486,7 +488,7 @@ var World = Class.extend({
         for (var x = offset_x - halfSize; x < offset_x + halfSize; x += this.worldScale) {
             cell[x + ''] = {};
             for (var z = offset_z - halfSize; z < offset_z + halfSize; z += this.worldScale) {
-                var h = Helper.roundNumber(Noise2D(((x) / (10 * scale)) + perlinOffset, ((z) / (10 * scale)) + perlinOffset, octaves, persistence), 2) * scale;
+                var h = Helper.roundNumber(Perlin.Noise2D(((x) / (10 * scale)) + perlinOffset, ((z) / (10 * scale)) + perlinOffset, octaves, persistence), 2) * scale;
                 h += heightOffset;
                 this.buildWorldStructure(zone, cellX, cellZ, true, x, z);
 
@@ -506,6 +508,305 @@ var World = Class.extend({
 
         this.saveCell(zone, cellX, cellZ, true);
     },
+    saveCell: function(zone, cellX, cellZ, clearObjects) {
+        // TODO: change this to an event?
+        chatHandler.AnnounceMods("Saving cell " + cellX + ", " + cellZ + " in zone " + zone + "...");
+
+        // Instead of saving instantly, we load the cell, overwrite it with the terrain we have, and save it! And empty terrain!
+        var buffer_terrain = JSON.parse(JSON.stringify(this.world[zone][cellX][cellZ].terrain));
+        var buffer_objects = JSON.parse(JSON.stringify(this.world[zone][cellX][cellZ].objects));
+        var buffer_graph = JSON.parse(JSON.stringify(this.world[zone][cellX][cellZ].graph));
+        var buffer_units = this.world[zone][cellX][cellZ].units;
+
+        this.loadCell(zone, cellX, cellZ);
+
+        if (clearObjects) {
+            this.world[zone][cellX][cellZ].objects = [];
+            buffer_objects = [];
+        }
+
+        this.world[zone][cellX][cellZ].graph = buffer_graph;
+        this.world[zone][cellX][cellZ].units = buffer_units;
+
+        for (var xt in buffer_terrain) {
+            for (var zt in buffer_terrain[xt]) {
+                if (_.isUndefined(this.world[zone][cellX][cellZ].terrain[xt])) {
+                    log("terrain xt undefined");
+                }
+                if (!_.isUndefined(buffer_terrain[xt][zt].t)) {
+                    this.world[zone][cellX][cellZ].terrain[xt][zt].t = buffer_terrain[xt][zt].t;
+                }
+                if (!_.isUndefined(buffer_terrain[xt][zt].y)) {
+                    this.world[zone][cellX][cellZ].terrain[xt][zt].y = buffer_terrain[xt][zt].y;
+                }
+            }
+        }
+
+        for (var o = 0; o < buffer_objects.length; o++) {
+            this.world[zone][cellX][cellZ].objects.push(buffer_objects[o]);
+        }
+
+        if (!_.isUndefined(worldHandler.world[zone][cellX][cellZ].changeBuffer)) {
+            for (var d = 0; d < worldHandler.world[zone][cellX][cellZ].changeBuffer.length; d++) {
+                var obj = worldHandler.world[zone][cellX][cellZ].changeBuffer[d];
+                var pos = new THREE.Vector3(obj.pos.x, obj.pos.y, obj.pos.z);
+                Helper.roundVector(pos, 2);
+
+                var found = false;
+
+                for (var o = 0; o < worldHandler.world[zone][cellX][cellZ].objects.length; o++) {
+                    var loopObj = worldHandler.world[zone][cellX][cellZ].objects[o];
+                    if (pos.x == loopObj.x && pos.y == loopObj.y && pos.z == loopObj.z) {
+                        if (_.isEmpty(obj.metadata)) {
+                            delete worldHandler.world[zone][cellX][cellZ].objects[o].metadata;
+                        } else {
+                            if (_.isUndefined(worldHandler.world[zone][cellX][cellZ].objects[o].metadata)) {
+                                worldHandler.world[zone][cellX][cellZ].objects[o].metadata = {};
+                            }
+                            _.extend(worldHandler.world[zone][cellX][cellZ].objects[o].metadata, obj.metadata);
+                        }
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    log("Could not find object in changeBuffer!");
+                } else {
+                    log("Found object in changeBuffer!");
+                }
+            }
+        }
+
+        // Delete the things from the terrain in the deleteBuffer
+        if (!_.isUndefined(worldHandler.world[zone][cellX][cellZ].deleteBuffer)) {
+            for (var d = 0; d < worldHandler.world[zone][cellX][cellZ].deleteBuffer.length; d++) {
+                var data = worldHandler.world[zone][cellX][cellZ].deleteBuffer[d];
+                data = new THREE.Vector3(data.x, data.y, data.z);
+                Helper.roundVector(data, 2);
+
+                var found = false;
+                for (var o = 0; o < worldHandler.world[zone][cellX][cellZ].objects.length; o++) {
+                    var obj = worldHandler.world[zone][cellX][cellZ].objects[o];
+
+                    obj = new THREE.Vector3(obj.x, obj.y, obj.z);
+                    Helper.roundVector(obj, 2);
+
+                    if (data.x == obj.x && data.y == obj.y && data.z == obj.z) {
+                        worldHandler.world[zone][cellX][cellZ].objects.splice(o--, 1);
+                        worldHandler.world[zone][cellX][cellZ].deleteBuffer.splice(d--, 1);
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    log("Could not find object in deleteBuffer!");
+                } else {
+                    log("Found object in deleteBuffer!");
+                }
+            }
+        }
+
+        // Query the entry
+        var path = this.worldDataPath + "/" + zone + "/" + cellX + "/" + cellZ;
+        mkdirp(path, function(err) {
+            if (err) {
+                log("Error:" + err);
+            } else {
+                log('Directory created');
+            }
+        });
+
+        var coordsToWorld = Helper.cellToWorldCoordinates(cellX, cellZ, this.cellSize);
+        var offset_x = coordsToWorld.x;
+        var offset_z = coordsToWorld.z;
+        var ar = [];
+        for (var x = offset_x - this.cellSizeHalf; x < offset_x + this.cellSizeHalf; x += this.worldScale) {
+            for (var z = offset_z - this.cellSizeHalf; z < offset_z + this.cellSizeHalf; z += this.worldScale) {
+                var info = this.world[zone][cellX][cellZ].terrain[x][z];
+                ar.push(info.t + "," + info.y);
+            }
+        }
+        var str = ar.join(";");
+
+        fs.writeFileSync(path + "/terrain.dat", str);
+
+        str = JSON.stringify(this.world[zone][cellX][cellZ].objects);
+        fs.writeFileSync(path + "/objects.json", str);
+
+        // Clean up the nodes first
+        // BS: commented out since astar.cleanup was...
+        //astar.cleanUp(this.world[zone][cellX][cellZ].graph);
+
+        // Rebuild the zone waypoints
+        this.buildZoneWaypoints();
+
+        str = JSON.stringify(this.world[zone][cellX][cellZ].graph);
+        fs.writeFileSync(path + "/graph.json", str);
+
+        log("Saved cell (" + cellX + "," + cellZ + ") in zone " + zone + "");
+
+        // Clean up
+        this.world[zone][cellX][cellZ].terrain = {};
+        this.world[zone][cellX][cellZ].objects = [];
+    },
+    updateNearbyUnitsOtherUnitsLists: function(zone, cellX, cellZ) {
+        for (var x = cellX - 1; x <= cellX + 1; x++) {
+            for (var z = cellZ - 1; z <= cellZ + 1; z++) {
+                if (this.checkWorldStructure(zone, x, z)) {
+                    for (var u = 0; u < this.world[zone][x][z].units.length; u++) {
+                        this.world[zone][x][z].units[u].updateOtherUnitsList();
+                    }
+                }
+            }
+        }
+    },
+    findUnit: function(id) {
+        for (var z in this.world) {
+            for (var cx in this.world[z]) {
+                for (var cz in this.world[z][cx]) {
+                    if (!_.isUndefined(this.world[z][cx][cz].units)) {
+                        var units = this.world[z][cx][cz].units;
+                        for (var u = 0; u < units.length; u++) {
+                            if (units[u].id === id) {
+                                return units[u];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    },
+    // Only for players!!!!
+    findPlayerByName: function(name) {
+        for (var z in this.world) {
+            for (var cx in this.world[z]) {
+                for (var cz in this.world[z][cx]) {
+                    if (!_.isUndefined(this.world[z][cx][cz].units)) {
+                        var units = this.world[z][cx][cz].units;
+
+                        for (var u in units) {
+                            if (units[u].id < 0) {
+                                continue;
+                            }
+
+                            if (units[u].name === name) {
+                                return units[u];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    },
+    findUnitNear: function(id, nearUnit) {
+        var zone = nearUnit.zone;
+        var cx = nearUnit.cellX;
+        var cz = nearUnit.cellZ;
+
+        for (var x = cx - 1; x <= cx + 1; x++) {
+            for (var z = cz - 1; z <= cz + 1; z++) {
+                if (!this.checkWorldStructure(zone, x, z)) {
+                    continue;
+                }
+
+                if (!_.isUndefined(this.world[zone][x][z].units)) {
+
+                    var units = this.world[zone][x][z].units;
+
+                    for (var u = 0; u < units.length; u++) {
+                        if (units[u].id == id) {
+                            return units[u];
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
+    },
+    deleteUnit: function(id) {
+        for (var z in this.world) {
+            for (var cx in this.world[z]) {
+                for (var cz in this.world[z][cx]) {
+                    if (!_.isUndefined(this.world[z][cx][cz].units)) {
+                        var units = this.world[z][cx][cz].units;
+
+                        for (var u = 0; u < units.length; u++) {
+                            if (units[u].id == id) {
+                                this.world[z][cx][cz].units.splice(u, 1);
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    },
+    getUnitCell: function(id) {
+        for (var z in this.world) {
+            for (var cx in this.world[z]) {
+                for (var cz in this.world[z][cx]) {
+                    if (!_.isUndefined(this.world[z][cx][cz].units)) {
+                        var units = this.world[z][cx][cz].units;
+
+                        for (var u = 0; u < units.length; u++) {
+                            if (units[u].id === id) {
+                                return {
+                                    zone: z,
+                                    x: cx,
+                                    z: cz
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    },
+    getWaypointID: function(zone) {
+        if (this.world[zone] === undefined) {
+            return -1;
+        }
+        if (this.world[zone].waypointIDCount === undefined || this.world[zone].waypointIDCount < 100) {
+            this.world[zone].waypointIDCount = 0;
+            for (var cx in this.world[zone]) {
+                for (var cz in this.world[zone][cx]) {
+                    if (this.world[zone][cx][cz].graph !== undefined) {
+                        if (this.world[zone][cx][cz].graph.nodes !== undefined) {
+                            for (var n = 0; n < this.world[zone][cx][cz].graph.nodes.length; n++) {
+                                if (this.world[zone][cx][cz].graph.nodes[n].id > this.world[zone].waypointIDCount) {
+                                    this.world[zone].waypointIDCount = this.world[zone][cx][cz].graph.nodes[n].id;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return ++this.world[zone].waypointIDCount;
+    },
+    autoSaveCell: function(zone, x, z) {
+        var worldHandler = this;
+
+        // Set a timer to auto save this cell
+        // If we set the height again, reset the timer
+        if (!_.isUndefined(this.world[zone][x][z].saveTimer)) {
+            //log("clearTimer");
+            clearTimeout(this.world[zone][x][z].saveTimer);
+        }
+        this.world[zone][x][z].saveTimer = setTimeout(
+        (function(zone, cx, cz) {
+            return function() {
+                worldHandler.saveCell(zone, cx, cz);
+            };
+        })(zone, x, z), 5000);
+    }
 });
 
 exports.World = World;
