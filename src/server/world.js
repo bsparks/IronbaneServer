@@ -42,6 +42,7 @@ var walk = function(dir, done) {
 };
 
 var Class = require('../common/class'),
+    Constants = require('../common/constants'),
     Helper = require('../common/gameHelper'),
     Perlin = require('../common/perlin'),
     log = require('util').log,
@@ -57,12 +58,6 @@ var World = Class.extend({
     hasLoadedWorld: false,
     init: function(worldDataPath) {
         this.worldDataPath = worldDataPath;
-
-        // these formerly in shared.js in client... (best place here?)
-        this.cellSize = 112;
-        this.cellSizeHalf = this.cellSize * 0.5;
-        this.cellLoadRange = 2;
-        this.worldScale = 2;
     },
     wake: function() {
         this.buildZoneWaypoints();
@@ -155,35 +150,35 @@ var World = Class.extend({
         }
     },
     checkWorldStructure: function(zone, cx, cz, checkterrain, tx, tz) {
-        if ((!_.isUndefined(zone) && _.isUndefined(worldHandler.world[zone])) ||
-            (!_.isUndefined(cx) && _.isUndefined(worldHandler.world[zone][cx])) ||
-            (!_.isUndefined(cz) && _.isUndefined(worldHandler.world[zone][cx][cz])) ||
-            (!_.isUndefined(checkterrain) && _.isUndefined(worldHandler.world[zone][cx][cz].terrain)) ||
-            (!_.isUndefined(tx) && _.isUndefined(worldHandler.world[zone][cx][cz].terrain[tx])) ||
-            (!_.isUndefined(tz) && _.isUndefined(worldHandler.world[zone][cx][cz].terrain[tx][tz]))) {
+        if ((!_.isUndefined(zone) && _.isUndefined(this.world[zone])) ||
+            (!_.isUndefined(cx) && _.isUndefined(this.world[zone][cx])) ||
+            (!_.isUndefined(cz) && _.isUndefined(this.world[zone][cx][cz])) ||
+            (!_.isUndefined(checkterrain) && _.isUndefined(this.world[zone][cx][cz].terrain)) ||
+            (!_.isUndefined(tx) && _.isUndefined(this.world[zone][cx][cz].terrain[tx])) ||
+            (!_.isUndefined(tz) && _.isUndefined(this.world[zone][cx][cz].terrain[tx][tz]))) {
             return false;
         }
 
         return true;
     },
     buildWorldStructure: function(zone, cx, cz, checkterrain, tx, tz) {
-        if (!_.isUndefined(zone) && _.isUndefined(worldHandler.world[zone])) {
-            worldHandler.world[zone] = {};
+        if (!_.isUndefined(zone) && _.isUndefined(this.world[zone])) {
+            this.world[zone] = {};
         }
-        if (!_.isUndefined(cx) && _.isUndefined(worldHandler.world[zone][cx])) {
-            worldHandler.world[zone][cx] = {};
+        if (!_.isUndefined(cx) && _.isUndefined(this.world[zone][cx])) {
+            this.world[zone][cx] = {};
         }
-        if (!_.isUndefined(cz) && _.isUndefined(worldHandler.world[zone][cx][cz])) {
-            worldHandler.world[zone][cx][cz] = {};
+        if (!_.isUndefined(cz) && _.isUndefined(this.world[zone][cx][cz])) {
+            this.world[zone][cx][cz] = {};
         }
-        if (!_.isUndefined(checkterrain) && _.isUndefined(worldHandler.world[zone][cx][cz].terrain)) {
-            worldHandler.world[zone][cx][cz].terrain = {};
+        if (!_.isUndefined(checkterrain) && _.isUndefined(this.world[zone][cx][cz].terrain)) {
+            this.world[zone][cx][cz].terrain = {};
         }
-        if (!_.isUndefined(tx) && _.isUndefined(worldHandler.world[zone][cx][cz].terrain[tx])) {
-            worldHandler.world[zone][cx][cz].terrain[tx] = {};
+        if (!_.isUndefined(tx) && _.isUndefined(this.world[zone][cx][cz].terrain[tx])) {
+            this.world[zone][cx][cz].terrain[tx] = {};
         }
-        if (!_.isUndefined(tz) && _.isUndefined(worldHandler.world[zone][cx][cz].terrain[tx][tz])) {
-            worldHandler.world[zone][cx][cz].terrain[tx][tz] = {};
+        if (!_.isUndefined(tz) && _.isUndefined(this.world[zone][cx][cz].terrain[tx][tz])) {
+            this.world[zone][cx][cz].terrain[tx][tz] = {};
         }
     },
     loadWorldLight: function() {
@@ -245,7 +240,7 @@ var World = Class.extend({
     },
     // skipping loadSwitches for now...
     loadUnits: function(zone, cellX, cellZ) {
-        var worldPos = Helper.cellToWorldCoordinates(cellX, cellZ, this.cellSize),
+        var worldPos = Helper.cellToWorldCoordinates(cellX, cellZ, Constants.CELL_SIZE),
             worldHandler = this;
 
         (function(zone, cellX, cellZ) {
@@ -372,7 +367,7 @@ var World = Class.extend({
                 if (stats.isFile()) {
                     var terrain = fs.readFileSync(path + "/terrain.dat", 'utf8');
 
-                    var coordsToWorld = Helper.cellToWorldCoordinates(cellX, cellZ, this.cellSize);
+                    var coordsToWorld = Helper.cellToWorldCoordinates(cellX, cellZ, Constants.CELL_SIZE);
                     var offset_x = coordsToWorld.x;
                     var offset_z = coordsToWorld.z;
                     var ar = terrain.split(";");
@@ -380,11 +375,11 @@ var World = Class.extend({
                     var count = 0;
 
                     this.world[zone][cellX][cellZ].terrain = {};
-                    for (var x = offset_x - this.cellSizeHalf; x < offset_x + this.cellSizeHalf; x += this.worldScale) {
+                    for (var x = offset_x - Constants.CELL_SIZE_HALF; x < offset_x + Constants.CELL_SIZE_HALF; x += Constants.WORLD_SCALE) {
                         if (_.isUndefined(this.world[zone][cellX][cellZ].terrain[x])) {
                             this.world[zone][cellX][cellZ].terrain[x] = {};
                         }
-                        for (var z = offset_z - this.cellSizeHalf; z < offset_z + this.cellSizeHalf; z += this.worldScale) {
+                        for (var z = offset_z - Constants.CELL_SIZE_HALF; z < offset_z + Constants.CELL_SIZE_HALF; z += Constants.WORLD_SCALE) {
                             var info = ar[count].split(",");
                             this.world[zone][cellX][cellZ].terrain[x][z] = {
                                 t: info[0],
@@ -464,7 +459,7 @@ var World = Class.extend({
         tile = tile || 11;
         heightOffset = heightOffset || 0;
 
-        var coordsToWorld = Helper.cellToWorldCoordinates(cellX, cellZ, this.cellSize);
+        var coordsToWorld = Helper.cellToWorldCoordinates(cellX, cellZ, Constants.CELL_SIZE);
 
         var offset_x = coordsToWorld.x;
         var offset_z = coordsToWorld.z;
@@ -476,7 +471,7 @@ var World = Class.extend({
 
         scale = scale | 1.0;
 
-        var halfSize = this.cellSizeHalf;
+        var halfSize = Constants.CELL_SIZE_HALF;
 
         var startTime = (new Date()).getTime();
 
@@ -485,9 +480,9 @@ var World = Class.extend({
 
         var perlinOffset = 7199254740992;
 
-        for (var x = offset_x - halfSize; x < offset_x + halfSize; x += this.worldScale) {
+        for (var x = offset_x - halfSize; x < offset_x + halfSize; x += Constants.WORLD_SCALE) {
             cell[x + ''] = {};
-            for (var z = offset_z - halfSize; z < offset_z + halfSize; z += this.worldScale) {
+            for (var z = offset_z - halfSize; z < offset_z + halfSize; z += Constants.WORLD_SCALE) {
                 var h = Helper.roundNumber(Perlin.Noise2D(((x) / (10 * scale)) + perlinOffset, ((z) / (10 * scale)) + perlinOffset, octaves, persistence), 2) * scale;
                 h += heightOffset;
                 this.buildWorldStructure(zone, cellX, cellZ, true, x, z);
@@ -618,12 +613,12 @@ var World = Class.extend({
             }
         });
 
-        var coordsToWorld = Helper.cellToWorldCoordinates(cellX, cellZ, this.cellSize);
+        var coordsToWorld = Helper.cellToWorldCoordinates(cellX, cellZ, Constants.CELL_SIZE);
         var offset_x = coordsToWorld.x;
         var offset_z = coordsToWorld.z;
         var ar = [];
-        for (var x = offset_x - this.cellSizeHalf; x < offset_x + this.cellSizeHalf; x += this.worldScale) {
-            for (var z = offset_z - this.cellSizeHalf; z < offset_z + this.cellSizeHalf; z += this.worldScale) {
+        for (var x = offset_x - Constants.CELL_SIZE_HALF; x < offset_x + Constants.CELL_SIZE_HALF; x += Constants.WORLD_SCALE) {
+            for (var z = offset_z - Constants.CELL_SIZE_HALF; z < offset_z + Constants.CELL_SIZE_HALF; z += Constants.WORLD_SCALE) {
                 var info = this.world[zone][cellX][cellZ].terrain[x][z];
                 ar.push(info.t + "," + info.y);
             }
@@ -806,6 +801,29 @@ var World = Class.extend({
                 worldHandler.saveCell(zone, cx, cz);
             };
         })(zone, x, z), 5000);
+    },
+    // BS: this seems to rely on being in linux? I don't even see this shell script in the repo...
+    doFullBackup: function() {
+        // TODO: fire event so "chatHandler" can listen...
+        chatHandler.AnnounceMods("Backing up server...", "blue");
+
+        var deploySh = spawn('sh', ['serverbackup.sh'], {
+            //cwd: process.env.HOME + '/myProject',
+            cwd: '/root',
+            env: _.extend(process.env, {
+                PATH: process.env.PATH + ':/usr/local/bin'
+            })
+        });
+
+        deploySh.stderr.on('data', function(data) {
+            chatHandler.AnnounceMods(data, "red");
+            //console.log('stderr: ' + data);
+        });
+
+        deploySh.on('exit', function(code) {
+            chatHandler.AnnounceMods("Backup complete!", "blue");
+            //console.log('child process exited with code ' + code);
+        });
     }
 });
 

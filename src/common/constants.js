@@ -14,31 +14,11 @@
     You should have received a copy of the GNU General Public License
     along with Ironbane MMO.  If not, see <http://www.gnu.org/licenses/>.
 */
+(function(exports) {
 
-var walk = function(dir, done) {
-  var results = [];
-  fs.readdir(dir, function(err, list) {
-    if (err) return done(err);
-    var i = 0;
-    (function next() {
-      var file = list[i++];
-      if (!file) return done(null, results);
-      file = dir + '/' + file;
-      fs.stat(file, function(err, stat) {
-        if (stat && stat.isDirectory()) {
-          walk(file, function(err, res) {
-            results = results.concat(res);
-            next();
-          });
-        } else {
-          results.push(file);
-          next();
-        }
-      });
-    })();
-  });
-};
+    exports.CELL_SIZE = 112; // 96+16
+    exports.CELL_SIZE_HALF = exports.CELL_SIZE * 0.5;
+    exports.CELL_LOAD_RANGE = 2;
+    exports.WORLD_SCALE = 2;
 
-function RandomClamped() { return (Math.random()*2)-1; }
-
-
+})(this);
