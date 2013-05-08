@@ -68,12 +68,17 @@
         return (Math.random() * 2) - 1;
     }
 
+    function distanceSq(pos1, pos2) {
+        return Math.pow((pos2.x - pos1.x), 2) + Math.pow((pos2.y - pos1.y), 2) + Math.pow((pos2.z - pos1.z), 2);
+    }
+
     exports.GameHelper = {
         cellToWorldCoordinates: cellToWorldCoordinates,
         worldToCellCoordinates: worldToCellCoordinates,
         roundNumber: roundNumber,
         roundVector: roundVector,
-        randomClamped: randomClamped
+        randomClamped: randomClamped,
+        distanceSq: distanceSq
     };
 
 })(this);

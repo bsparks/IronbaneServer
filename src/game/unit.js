@@ -20,6 +20,32 @@ var Class = require('../common/class'),
     log = require('util').log,
     THREE = require('three');
 
+var UnitTypeEnum = {
+    PLAYER: 0,
+    NPC: 1,
+    LOOTABLE: 2,
+    BILLBOARD: 3,
+    MULTIBOARD: 4,
+    MESH: 5,
+    MOVINGOBSTACLE: 6,
+    TRAIN: 7,
+    TOGGLEABLEOBSTACLE: 8,
+    LEVER: 9,
+    TELEPORTENTRANCE: 10,
+    TELEPORTEXIT: 11,
+    SIGN: 12,
+    HEARTPIECE: 13,
+    MUSICPLAYER: 14,
+
+    // NPC's
+    MONSTER: 20,
+    VENDOR: 21,
+    TURRET: 22,
+    WANDERER: 23,
+    TURRET_STRAIGHT: 24,
+    TURRET_KILLABLE: 25
+};
+
 var Unit = Class.extend({
     velocity: new THREE.Vector3(), // Server-side velocity, is not sent to the client
     heading: new THREE.Vector3(), // a normalized vector pointing in the direction the entity is heading.
@@ -67,7 +93,7 @@ var Unit = Class.extend({
 
         // move this to world
         if (worldHandler.CheckWorldStructure(this.zone, this.cellX, this.cellZ)) {
-            worldHandler.world[this.zone][this.cellX][this.cellZ]["units"].push(this);
+            worldHandler.world[this.zone][this.cellX][this.cellZ].units.push(this);
         } else {
             // We are in a bad cell??? Find a place to spawn! Or DC
             log("Bad cell found for " + this.id);
@@ -78,7 +104,7 @@ var Unit = Class.extend({
 
         (function(unit) {
             setTimeout(function() {
-                unit.UpdateNearbyUnitsOtherUnitsLists()
+                unit.UpdateNearbyUnitsOtherUnitsLists();
             }, 0);
         })(this);
     },
@@ -95,7 +121,7 @@ var Unit = Class.extend({
         this.readyToReceiveUnits = false;
 
         if (worldHandler.CheckWorldStructure(this.zone, this.cellX, this.cellZ)) {
-            worldHandler.world[this.zone][this.cellX][this.cellZ]["units"] = _.without(worldHandler.world[this.zone][this.cellX][this.cellZ]["units"], this);
+            worldHandler.world[this.zone][this.cellX][this.cellZ].units = _.without(worldHandler.world[this.zone][this.cellX][this.cellZ].units, this);
         }
 
         this.updateNearbyUnitsOtherUnitsLists();
@@ -105,7 +131,7 @@ var Unit = Class.extend({
         this.updateCellPosition();
 
         if (worldHandler.CheckWorldStructure(this.zone, this.cellX, this.cellZ)) {
-            worldHandler.world[this.zone][this.cellX][this.cellZ]["units"].push(this);
+            worldHandler.world[this.zone][this.cellX][this.cellZ].units.push(this);
         }
 
         this.updateNearbyUnitsOtherUnitsLists();
@@ -198,7 +224,7 @@ var Unit = Class.extend({
                 }
 
                 if (unit.template.type == UnitTypeEnum.LEVER || unit.template.type == UnitTypeEnum.TOGGLEABLEOBSTACLE) {
-                    unit.data['on'] = unit.on;
+                    unit.data.on = unit.on;
                 }
 
                 if (unit.template.special) {
@@ -253,7 +279,7 @@ var Unit = Class.extend({
         for (var x = cx - 1; x <= cx + 1; x++) {
             for (var z = cz - 1; z <= cz + 1; z++) {
                 if (worldHandler.CheckWorldStructure(this.zone, x, z)) {
-                    _.each(worldHandler.world[this.zone][x][z]["units"], function(unit) {
+                    _.each(worldHandler.world[this.zone][x][z].units, function(unit) {
 
 
 
@@ -285,8 +311,8 @@ var Unit = Class.extend({
         for (var x = cx - 1; x <= cx + 1; x++) {
             for (var z = cz - 1; z <= cz + 1; z++) {
                 if (worldHandler.CheckWorldStructure(this.zone, x, z)) {
-                    for (var u = 0; u < worldHandler.world[this.zone][x][z]["units"].length; u++) {
-                        var unit = worldHandler.world[this.zone][x][z]["units"][u];
+                    for (var u = 0; u < worldHandler.world[this.zone][x][z].units.length; u++) {
+                        var unit = worldHandler.world[this.zone][x][z].units[u];
 
                         if (unit == this) continue;
 
@@ -319,10 +345,10 @@ var Unit = Class.extend({
             // First, remove us from our world cell and add ourselves to the right cell
             // Remove the unit from the world cells
             if (worldHandler.CheckWorldStructure(zone, cx, cz)) {
-                var units = worldHandler.world[zone][cx][cz]["units"];
+                var units = worldHandler.world[zone][cx][cz].units;
                 for (var u = 0; u < units.length; u++) {
                     if (units[u].id == this.id) {
-                        worldHandler.world[zone][cx][cz]["units"].splice(u, 1);
+                        worldHandler.world[zone][cx][cz].units.splice(u, 1);
                         break;
                     }
                 }
@@ -331,7 +357,7 @@ var Unit = Class.extend({
             // Add to the new cell
             // What if the cell doesn't exist? Don't add?
             if (worldHandler.CheckWorldStructure(zone, cellPos.x, cellPos.z)) {
-                worldHandler.world[zone][cellPos.x][cellPos.z]["units"].push(this);
+                worldHandler.world[zone][cellPos.x][cellPos.z].units.push(this);
             }
 
             var cellsToRecalculate = [];
@@ -369,8 +395,8 @@ var Unit = Class.extend({
                     // Not found in the secondlist, so recalculate all units inside
                     if (!worldHandler.CheckWorldStructure(zone, firstList[c].x, firstList[c].z)) continue;
 
-                    for (var u = 0; u < worldHandler.world[zone][firstList[c].x][firstList[c].z]["units"].length; u++) {
-                        var funit = worldHandler.world[zone][firstList[c].x][firstList[c].z]["units"][u];
+                    for (var u = 0; u < worldHandler.world[zone][firstList[c].x][firstList[c].z].units.length; u++) {
+                        var funit = worldHandler.world[zone][firstList[c].x][firstList[c].z].units[u];
                         funit.UpdateOtherUnitsList();
                     }
 
@@ -384,8 +410,8 @@ var Unit = Class.extend({
                     // Not found in the firstlist, so recalculate all units inside
                     if (!worldHandler.CheckWorldStructure(zone, secondList[c].x, secondList[c].z)) continue;
 
-                    for (var u = 0; u < worldHandler.world[zone][secondList[c].x][secondList[c].z]["units"].length; u++) {
-                        var funit = worldHandler.world[zone][secondList[c].x][secondList[c].z]["units"][u];
+                    for (var u = 0; u < worldHandler.world[zone][secondList[c].x][secondList[c].z].units.length; u++) {
+                        var funit = worldHandler.world[zone][secondList[c].x][secondList[c].z].units[u];
                         funit.UpdateOtherUnitsList();
                     }
 
@@ -415,13 +441,13 @@ var Unit = Class.extend({
         var cx = this.cellX;
         var cz = this.cellZ;
 
-        worldHandler.world[zone][cx][cz]["units"] = _.without(worldHandler.world[zone][cx][cz]["units"], this);
+        worldHandler.world[zone][cx][cz].units = _.without(worldHandler.world[zone][cx][cz].units, this);
 
         for (var x = cx - 1; x <= cx + 1; x++) {
             for (var z = cz - 1; z <= cz + 1; z++) {
                 if (worldHandler.CheckWorldStructure(zone, x, z)) {
-                    for (var u = 0; u < worldHandler.world[zone][x][z]["units"].length; u++) {
-                        worldHandler.world[zone][x][z]["units"][u].UpdateOtherUnitsList();
+                    for (var u = 0; u < worldHandler.world[zone][x][z].units.length; u++) {
+                        worldHandler.world[zone][x][z].units[u].UpdateOtherUnitsList();
                     }
                 }
             }
@@ -442,9 +468,9 @@ var Unit = Class.extend({
             for (var z = cz - 1; z <= cz + 1; z++) {
                 if (!worldHandler.CheckWorldStructure(zone, x, z)) continue;
 
-                if (ISDEF(worldHandler.world[zone][x][z]["units"])) {
+                if (ISDEF(worldHandler.world[zone][x][z].units)) {
 
-                    var units = worldHandler.world[zone][x][z]["units"];
+                    var units = worldHandler.world[zone][x][z].units;
 
                     for (var u = 0; u < units.length; u++) {
                         if (!(units[u] instanceof Player)) continue;
@@ -476,7 +502,7 @@ var Unit = Class.extend({
         var distance = Math.pow(50, 2);
         for (var x in allNodes) {
             //for(var x=0;x<allNodes.length;x++){
-            var measuredDistance = DistanceSq(allNodes[x]['pos'], this.position);
+            var measuredDistance = DistanceSq(allNodes[x].pos, this.position);
             if (measuredDistance < distance) {
                 closestNode = allNodes[x];
                 distance = measuredDistance;
@@ -493,7 +519,7 @@ var Unit = Class.extend({
         distance = Math.pow(50, 2);
         //for(var x=0;x<allNodes.length;x++){
         for (var x in allNodes) {
-            var measuredDistance = DistanceSq(allNodes[x]['pos'], targetPosition);
+            var measuredDistance = DistanceSq(allNodes[x].pos, targetPosition);
             if (measuredDistance < distance) {
                 farthestNode = allNodes[x];
                 distance = measuredDistance;
@@ -530,4 +556,8 @@ var Unit = Class.extend({
 
 });
 
+// static on main class, later remove export?
+Unit.UNIT_TYPES = UnitTypeEnum;
+
 exports.Unit = Unit;
+exports.UnitTypeEnum = UnitTypeEnum;
