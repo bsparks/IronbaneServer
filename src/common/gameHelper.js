@@ -18,8 +18,15 @@
         };
     };
 
+    var roundNumber = function(number, digits) {
+        var multiple = Math.pow(10, digits);
+        var rndedNum = Math.round(number * multiple) / multiple;
+        return rndedNum;
+    };
+
     exports.GameHelper = {
-        cellToWorldCoordinates: cellToWorldCoordinates
+        cellToWorldCoordinates: cellToWorldCoordinates,
+        roundNumber: roundNumber
     };
 
 })(this);

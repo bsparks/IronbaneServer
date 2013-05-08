@@ -448,7 +448,64 @@ var World = Class.extend({
 
         this.world[zone][cellX][cellZ].units = [];
 
-    }
+    },
+    // <octaves>,<persistence> some discovered values:
+    // 1,4, 1-5, 2-2, 4-1, 5-1 -> small hills
+    // 2,5 mountains
+    // 2,3 somewhat more hillish
+    // 3,2 very rough, volcano
+    // 3-3 Very mountaneous, hard to navigate
+    // 3-4, 3-5, icepeaks :D
+    // 4-3 super sharp peaks
+    generateCell: function(zone, cellX, cellZ, octaves, persistence, scale, tile, heightOffset) {
+
+        tile = tile || 11;
+        heightOffset = heightOffset || 0;
+
+        var coordsToWorld = Helper.cellToWorldCoordinates(cellX, cellZ, this.cellSize);
+
+        var offset_x = coordsToWorld.x;
+        var offset_z = coordsToWorld.z;
+
+        // Generate a cell inside a zone and save it
+        var perlin = new ImprovedNoise();
+        var quality = 1;
+        var r = 1;
+
+        scale = scale | 1.0;
+
+        var halfSize = this.cellSizeHalf;
+
+        var startTime = (new Date()).getTime();
+
+        // [cell][x][z]
+        var cell = {};
+
+        var perlinOffset = 7199254740992;
+
+        for (var x = offset_x - halfSize; x < offset_x + halfSize; x += this.worldScale) {
+            cell[x + ''] = {};
+            for (var z = offset_z - halfSize; z < offset_z + halfSize; z += this.worldScale) {
+                var h = Helper.roundNumber(Noise2D(((x) / (10 * scale)) + perlinOffset, ((z) / (10 * scale)) + perlinOffset, octaves, persistence), 2) * scale;
+                h += heightOffset;
+                this.buildWorldStructure(zone, cellX, cellZ, true, x, z);
+
+                this.world[zone][cellX][cellZ].terrain[x][z] = {
+                    t: tile,
+                    y: h
+                };
+            }
+        }
+
+        this.world[zone][cellX][cellZ].units = [];
+        this.world[zone][cellX][cellZ].objects = [];
+        this.world[zone][cellX][cellZ].graph = {};
+
+        var endTime = (new Date()).getTime() - startTime;
+        log("Generated cell (" + cellX + "," + cellZ + ") in " + endTime / 1000 + " seconds");
+
+        this.saveCell(zone, cellX, cellZ, true);
+    },
 });
 
 exports.World = World;
