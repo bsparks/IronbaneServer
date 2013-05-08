@@ -20,7 +20,6 @@ var init = function() {
 };
 
 var startServer = function() {
-    console.log('pre-init');
     init();
 
     // Not game stuff, this is for the server executable

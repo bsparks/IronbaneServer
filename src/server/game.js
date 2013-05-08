@@ -5,6 +5,8 @@ var Class = require('../common/class'),
 
 var GameServer = Class.extend({
     versionWarningTimer: 10.0,
+    itemTemplates: {},
+    unitTemplates: {},
     init: function(config) {
         // keep reference for sql callbacks...
         var server = this;
@@ -27,10 +29,21 @@ var GameServer = Class.extend({
 
             Q.all([
                 Q.nfcall(connection.query, 'SELECT id FROM ib_units ORDER BY id DESC'),
-                Q.nfcall(connection.query, 'SELECT id FROM ib_items ORDER BY id DESC')
-            ]).then(function(npc, item) {
+                Q.nfcall(connection.query, 'SELECT id FROM ib_items ORDER BY id DESC'),
+                // next 2 queries were from dataHandler
+                Q.nfcall(connection.query, 'SELECT * FROM ib_item_templates'),
+                Q.nfcall(connection.query, 'SELECT * FROM ib_unit_templates')
+            ]).then(function(npc, item, itemTemplates, unitTemplates) {
                 server.npcIDCount = npc.length > 0 ? npc[0].id : 0;
                 server.itemIDCount = item.length > 0 ? item[0].id : 0;
+
+                for(var i=0;i<itemTemplates.length;i++) {
+                    server.itemTemplates[itemTemplates[i].id] = itemTemplates[i];
+                }
+
+                for(var u=0;u<unitTemplates.length;u++) {
+                    server.unitTemplates[unitTemplates[u].id] = unitTemplates[u];
+                }
 
                 // we're done shut down this connection
                 connection.end();
