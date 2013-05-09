@@ -16,6 +16,7 @@
 */
 
 var MovingUnit = require('./movingUnit'),
+    UnitTypeEnum = require('./unit').UnitTypeEnum,
     log = require('util').log;
 
 var Actor = MovingUnit.extend({

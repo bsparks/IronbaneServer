@@ -16,6 +16,7 @@
 */
 
 var Class = require('../common/class'),
+    Player = require('./player'),
     _ = require('underscore'),
     log = require('util').log,
     THREE = require('three');
@@ -107,6 +108,10 @@ var Unit = Class.extend({
                 unit.UpdateNearbyUnitsOtherUnitsLists();
             }, 0);
         })(this);
+    },
+    isPlayer: function() {
+        // switch to flag? (to remove dependency)
+        return this instanceof Player;
     },
     wake: function() {
         //log(this.id+" is awake!");
