@@ -26,8 +26,11 @@ var State = Class.extend({
     handleMessage: function(unit, telegram) {}
 });
 
+// create empty state here, just for instanceof checking?
+var EmptyState = State.extend();
+
 var StateMachine = Class.extend({
-    iInit: function(owner, currentState, globalState) {
+    init: function(owner, currentState, globalState) {
         this.owner = owner;
 
         this.globalState = globalState;

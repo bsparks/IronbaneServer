@@ -15,26 +15,28 @@
     along with Ironbane MMO.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+var State = require('../state').State;
 
-var EmptyState = State.extend({
-	Init: function() {
-	
-	
-	},
-	Enter: function(unit) {
-		
-		
-	},
-	Execute: function(unit, dTime) {
-	
-	
-	},
-	Exit: function(unit) {
-	
-	
-	},
-        HandleMessage: function(unit, message, data) {
-            
-            
+var SellMerchandise = State.extend({
+    enter: function(unit) {
+        this.restockTimer = 300.0;
+    },
+    execute: function(unit, dTime) {
+        this.restockTimer -= dTime;
+
+        if ( this.restockTimer <= 0 ) {
+            this.restockTimer = 300.0;
+
+            // Restock a random item
+            unit.setWeaponsAndLoot();
+
+            // unit.Say(ChooseRandom([
+            //  "I've got new stuff!",
+            //  "Restocked merchandise!",
+            //  "New and better deals!"
+            // ]));
         }
+    }
 });
+
+exports.SellMerchandise = SellMerchandise;
