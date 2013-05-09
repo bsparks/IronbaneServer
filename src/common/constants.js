@@ -16,6 +16,11 @@
 */
 (function(exports) {
 
+    exports.GUEST_SPAWN_ZONE = 1;
+    exports.GUEST_SPAWN_POS = [10, 0, 0]; // array vector to convert to THREE
+    exports.PLAYER_SPAWN_TIMEOUT = 5.0;
+    exports.NPC_SPAWN_TIMEOUT = 10.0;
+
     exports.CELL_SIZE = 112; // 96+16
     exports.CELL_SIZE_HALF = exports.CELL_SIZE * 0.5;
     exports.CELL_LOAD_RANGE = 2;
