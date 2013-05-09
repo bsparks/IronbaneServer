@@ -15,20 +15,12 @@
     along with Ironbane MMO.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+var Unit = require('../unit');
 
-
-
-var TeleportExit = Unit.extend({
-    Init: function(data) {
-        
+var MovingObstacle = Unit.extend({
+    init: function(data) {
         this._super(data);
-
-
-    },
-    Tick: function(dTime) {
-        
-        this._super(dTime);
-        
-
     }
 });
+
+exports.MovingObstacle = MovingObstacle;

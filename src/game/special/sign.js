@@ -14,17 +14,16 @@
     You should have received a copy of the GNU General Public License
     along with Ironbane MMO.  If not, see <http://www.gnu.org/licenses/>.
 */
-var MusicPlayer = Unit.extend({
-    Init: function(data) {
 
+var Unit = require('../unit');
+
+var Sign = Unit.extend({
+    init: function(data) {
         this._super(data);
-
-
     },
-    Tick: function(dTime) {
-
+    tick: function(dTime) {
         this._super(dTime);
-
-
     }
 });
+
+exports.Sign = Sign;

@@ -15,34 +15,15 @@
     along with Ironbane MMO.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+var Unit = require('../unit');
 
-var HeartPiece = Unit.extend({
-    Init: function(data) {
-
+var MusicPlayer = Unit.extend({
+    init: function(data) {
         this._super(data);
-
-
-
     },
-    Tick: function(dTime) {
-
+    tick: function(dTime) {
         this._super(dTime);
-
-
-        var units = worldHandler.world[this.zone][this.cellX][this.cellZ]["units"];
-
-        for(var u=0;u<units.length;u++) {
-            if ( !(units[u] instanceof Player) ) continue;
-
-            if ( units[u].InRangeOfUnit(this, 1) ) {
-
-
-                break;
-            }
-        }
-
-
-
-
     }
 });
+
+exports.MusicPlayer = MusicPlayer;
