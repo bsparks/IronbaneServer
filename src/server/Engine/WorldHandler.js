@@ -29,7 +29,7 @@ fs = require('fs');
 var WorldHandler = Class.extend({
   init: function() {
 
-this.dataPath = config.get('clientDir') + 'plugins\\game\\data';
+this.dataPath = config.get('clientDir') + 'plugins/game/data';
     // World structure
     // [zone][cx][cz]
     this.world = {};
@@ -177,9 +177,9 @@ this.dataPath = config.get('clientDir') + 'plugins\\game\\data';
       if (results === null) return;
     var rl = results.length;
       for (var r=0;r<rl;r++) {
-        results[r] = results[r].replace(dataPath+"\\", "");
+        results[r] = results[r].replace(dataPath+"/", "");
 
-        var data = results[r].split("\\");
+        var data = results[r].split("/");
        //log(data);
 
         var zone = parseInt(data[0], 10);
@@ -306,10 +306,7 @@ this.dataPath = config.get('clientDir') + 'plugins\\game\\data';
     console.log(worldPos);
 
     var worldHandler = this;
-
-console.log(
-        [zone,(worldPos.x-cellSizeHalf),(worldPos.z-cellSizeHalf),(worldPos.x+cellSizeHalf),(worldPos.z+cellSizeHalf)]);
-
+console.log(this.engine);
 
       this.engine.mysql.query('SELECT * FROM ib_units WHERE zone = ? AND x > ? AND z > ? AND x < ? AND z < ?',
         [zone,(worldPos.x-cellSizeHalf),(worldPos.z-cellSizeHalf),(worldPos.x+cellSizeHalf),(worldPos.z+cellSizeHalf)],

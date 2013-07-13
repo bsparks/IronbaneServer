@@ -7,6 +7,8 @@ var events = require('events'),
     WorldHandler = require('../Engine/WorldHandler'),
     SocketHandler = require('../Engine/SocketHandler'),
 
+    DataHandler = require('../Engine/DataHandler'),
+
 
  fs = require('fs');
 
@@ -64,9 +66,12 @@ var GameEngine = Class.extend({
         _.extend(server, settings);
         this.worldHandler = new WorldHandler();
         this.worldHandler.engine = this;
-        
+
         this.socketHandler = new SocketHandler();
         this.socketHandler.engine = this;
+
+        this.dataHandler = new DataHandler();
+        this.dataHandler.engine = this;
         server.startTime = -1;
         server.lastTime = 0;
         // in case we need to clear these...

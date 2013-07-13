@@ -3,9 +3,7 @@
 var GameEngine = require('./engine');
 module.exports = function(db) {
 console.log(db);
-
-var game = new GameEngine();
-game.mysql = db;
+var game = new GameEngine(db);
 
 // eventually this game engine class will contain most of the references that are currently global
 

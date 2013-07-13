@@ -20,6 +20,7 @@
  */
 
 
+ var   Class = require('../../common/class');
 var DataHandler = Class.extend({
     Init: function() {
         this.Load();
@@ -49,4 +50,4 @@ var DataHandler = Class.extend({
     }
 });
 
-var dataHandler = new DataHandler();
+module.exports = DataHandler;
