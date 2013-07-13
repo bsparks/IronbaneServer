@@ -49,7 +49,7 @@ function WorldToCellCoordinates(x, z, cellsize) {
 
 module.exports.CellToWorldCoordinates = CellToWorldCoordinates;
 function CellToWorldCoordinates(x, z, cellsize) {
-
+console.log(cellsize);
   if ( cellsize % 2 != 0 ) console.error("Cellsize not dividable by 2!");
 
   var cellhalf = cellsize / 2;
@@ -154,29 +154,7 @@ function CheckForFunctionReturnValue(v, data) {
 }
 
 
-Vector3.prototype.Round = function(n) {
-  this.x = roundNumber(this.x, n);
-  this.y = roundNumber(this.y, n);
-  this.z = roundNumber(this.z, n);
 
-  return this;
-};
-
-Vector3.prototype.ToRadians = function(n) {
-  this.x = this.x.ToRadians();
-  this.y = this.y.ToRadians();
-  this.z = this.z.ToRadians();
-
-  return this;
-};
-
-Vector3.prototype.ToDegrees = function(n) {
-  this.x = this.x.ToDegrees();
-  this.y = this.y.ToDegrees();
-  this.z = this.z.ToDegrees();
-
-  return this;
-};
 
 function RoundVector(vec, n) {
   vec.x = roundNumber(vec.x, n);
@@ -188,24 +166,7 @@ function RoundVector(vec, n) {
 Number.prototype.ToBig = function() {
   return this * 100;
 };
-Vector3.prototype.ToBig = function(n) {
-  this.x = this.x * 100;
-  this.y = this.y * 100;
-  this.z = this.z * 100;
 
-  return this;
-};
-
-Vector3.prototype.Truncate = function(n) {
-  if ( this.length() > n ) {
-    return this.normalize().multiplyScalar(n);
-  }
-  return this;
-};
-
-Vector3.prototype.Perp = function() {
-  return this.crossSelf(new Vector3(0, 1, 0));
-};
 
 function VectorDistance(a,b) {
   return a.clone().subSelf(b).length();
@@ -213,9 +174,7 @@ function VectorDistance(a,b) {
 function VectorDistanceSq(a,b) {
   return a.clone().subSelf(b).lengthSq();
 }
-Vector3.prototype.isNear = function(vec, range) {
-  return VectorDistanceSq(this, vec) <= range*range;
-};
+
 
 function WasLucky(maxchance) {
   return getRandomInt(1, maxchance) == 1;

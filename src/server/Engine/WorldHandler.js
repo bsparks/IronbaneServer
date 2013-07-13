@@ -20,7 +20,8 @@ config = require('../../../nconf'),
 //walk = require('./Util').walk,
 //walk = require('node-utils').walk,
 wrench = require('wrench'),
-cellSize = require('../External/Shared').cellSize;
+cellSize = require('../External/Shared').cellSize,
+cellSizeHalf = require('../External/Shared').cellSizeHalf,
 _ = require('underscore'),
 CellToWorldCoordinates = require('../External/Util').CellToWorldCoordinates,
 fs = require('fs');
@@ -301,15 +302,16 @@ this.dataPath = config.get('clientDir') + 'plugins\\game\\data';
   LoadUnits: function(zone, cellX, cellZ) {
 
 
-    var worldPos = this.engine.CellToWorldCoordinates(cellX, cellZ, cellSize);
+    var worldPos = CellToWorldCoordinates(cellX, cellZ, cellSize);
+    console.log(worldPos);
+
+    var worldHandler = this;
+
+console.log(
+        [zone,(worldPos.x-cellSizeHalf),(worldPos.z-cellSizeHalf),(worldPos.x+cellSizeHalf),(worldPos.z+cellSizeHalf)]);
 
 
-
-
-
-
-    (function(zone,cellX,cellZ){
-      mysql.query('SELECT * FROM ib_units WHERE zone = ? AND x > ? AND z > ? AND x < ? AND z < ?',
+      this.engine.mysql.query('SELECT * FROM ib_units WHERE zone = ? AND x > ? AND z > ? AND x < ? AND z < ?',
         [zone,(worldPos.x-cellSizeHalf),(worldPos.z-cellSizeHalf),(worldPos.x+cellSizeHalf),(worldPos.z+cellSizeHalf)],
         function (err, results, fields) {
 
@@ -329,7 +331,6 @@ this.dataPath = config.get('clientDir') + 'plugins\\game\\data';
           worldHandler.world[zone][cellX][cellZ].hasLoadedUnits = true;
 
         });
-    })(zone, cellX, cellZ);
 
 
 
@@ -344,7 +345,7 @@ this.dataPath = config.get('clientDir') + 'plugins\\game\\data';
       data.data = JSON.parse(data.data);
     }
 
-    if ( !ISDEF(dataHandler.units[data.template]) ) {
+    if ( !ISDEF(this.engine.dataHandler.units[data.template]) ) {
       log("Warning! Unit template "+data.template+" not found!");
       log("Cleaning up MySQL...");
 
@@ -355,7 +356,7 @@ this.dataPath = config.get('clientDir') + 'plugins\\game\\data';
       return null;
     }
 
-    data.template = dataHandler.units[data.template];
+    data.template = this.engine.dataHandler.units[data.template];
     // Depending on the param, load different classes
 
 

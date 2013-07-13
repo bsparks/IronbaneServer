@@ -7,9 +7,8 @@
  * @author egraether / http://egraether.com/
  */
 
-var THREE = { };
 
-THREE.Vector3 = function ( x, y, z ) {
+Vector3 = function ( x, y, z ) {
 
 	this.x = x || 0;
 	this.y = y || 0;
@@ -17,10 +16,33 @@ THREE.Vector3 = function ( x, y, z ) {
 
 };
 
+Vector3.prototype.Round = function(n) {
+  this.x = roundNumber(this.x, n);
+  this.y = roundNumber(this.y, n);
+  this.z = roundNumber(this.z, n);
 
-THREE.Vector3.prototype = {
+  return this;
+};
 
-	constructor: THREE.Vector3,
+Vector3.prototype.ToRadians = function(n) {
+  this.x = this.x.ToRadians();
+  this.y = this.y.ToRadians();
+  this.z = this.z.ToRadians();
+
+  return this;
+};
+
+Vector3.prototype.ToDegrees = function(n) {
+  this.x = this.x.ToDegrees();
+  this.y = this.y.ToDegrees();
+  this.z = this.z.ToDegrees();
+
+  return this;
+};
+
+Vector3.prototype = {
+
+	constructor: Vector3,
 
 	set: function ( x, y, z ) {
 
@@ -395,7 +417,30 @@ function roundNumber(number, digits) {
 	return rndedNum;
 }
 
+Vector3.prototype.ToBig = function(n) {
+  this.x = this.x * 100;
+  this.y = this.y * 100;
+  this.z = this.z * 100;
 
-THREE.Vector3.prototype.ToString = function ( ) {
+  return this;
+};
+
+Vector3.prototype.isNear = function(vec, range) {
+  return VectorDistanceSq(this, vec) <= range*range;
+};
+
+Vector3.prototype.Truncate = function(n) {
+  if ( this.length() > n ) {
+    return this.normalize().multiplyScalar(n);
+  }
+  return this;
+};
+
+Vector3.prototype.Perp = function() {
+  return this.crossSelf(new Vector3(0, 1, 0));
+};
+
+
+Vector3.prototype.ToString = function ( ) {
     return "X: "+roundNumber(this.x,2)+", Y: "+roundNumber(this.y,2)+", Z: "+roundNumber(this.z,2)+"";
 };

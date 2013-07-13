@@ -64,6 +64,7 @@ var GameEngine = Class.extend({
         _.extend(server, settings);
         this.worldHandler = new WorldHandler();
         this.worldHandler.engine = this;
+        
         this.socketHandler = new SocketHandler();
         this.socketHandler.engine = this;
         server.startTime = -1;

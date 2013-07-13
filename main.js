@@ -126,7 +126,7 @@ var includes = [
 
 // create game server, do it first so that the other 2 "servers" can query it
 console.log("making ironbanegame");
-var IronbaneGame = require('./src/server/game');
+var IronbaneGame = require('./src/server/game')(mysql);
 console.log('done making ironbanegame');
 // create express.io server
 var HttpServer = require('./src/server/http/server').Server,
@@ -141,14 +141,14 @@ var io = httpServer.server.io,
  //   log("Loading: " + includes[f]);
 //    eval(fs.readFileSync(includes[f]) + '');
 //}
-var _server = require('./Server');
-    IronbaneGame.server = new _server();
-    IronbaneGame.server.engine = IronbaneGame;
+//var _server = require('./Server');
+  //  IronbaneGame.server = new _server();
+    //IronbaneGame.server.engine = IronbaneGame;
 // this replaces MainLoop, must go here since server hasn't been defined earlier...
-IronbaneGame.on('tick', function(elapsed) {
+//IronbaneGame.on('tick', function(elapsed) {
     // eventually we wouldn't be accessing the global var here...
-    IronbaneGame.server.Tick(elapsed);
-});
+  //  IronbaneGame.server.Tick(elapsed);
+//});
 
 // Necessary to prevent 'Mysql has gone away' errors
 // Use it check for restarting on git push
