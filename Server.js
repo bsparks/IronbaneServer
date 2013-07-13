@@ -14,8 +14,7 @@
     You should have received a copy of the GNU General Public License
     along with Ironbane MMO.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-
+var Class = require('./src/common/class');
 var Server = Class.extend({
     Init: function() {
 
@@ -130,7 +129,7 @@ var Server = Class.extend({
 
         //log(dTime);
 
-        worldHandler.Tick(dTime);
+        this.engine.worldHandler.Tick(dTime);
 
         // Tick and send out snapshot
         // First build the snapshot
@@ -151,13 +150,13 @@ var Server = Class.extend({
         // io.sockets.emit("snapshot", snapshot);
 
 
-        for(var z in worldHandler.world) {
-            for(var cx in worldHandler.world[z]) {
-                for(var cz in worldHandler.world[z][cx]) {
+        for(var z in this.engine.worldHandler.world) {
+            for(var cx in this.engine.worldHandler.world[z]) {
+                for(var cz in this.engine.worldHandler.world[z][cx]) {
 
-                    if ( ISDEF(worldHandler.world[z][cx][cz]["units"]) ) {
+                    if ( ISDEF(this.engine.worldHandler.world[z][cx][cz]["units"]) ) {
 
-                        var units = worldHandler.world[z][cx][cz]["units"];
+                        var units = this.engine.worldHandler.world[z][cx][cz]["units"];
 
                         for(var u=0;u<units.length;u++) {
 
@@ -174,13 +173,13 @@ var Server = Class.extend({
         }
         // Loop through all connected players in every cell and send each player an update of their otherUnits
 
-        for(var z in worldHandler.world) {
-            for(var cx in worldHandler.world[z]) {
-                for(var cz in worldHandler.world[z][cx]) {
+        for(var z in this.engine.worldHandler.world) {
+            for(var cx in this.engine.worldHandler.world[z]) {
+                for(var cz in this.engine.worldHandler.world[z][cx]) {
 
-                    if ( ISDEF(worldHandler.world[z][cx][cz]["units"]) ) {
+                    if ( ISDEF(this.engine.worldHandler.world[z][cx][cz]["units"]) ) {
 
-                        var units = worldHandler.world[z][cx][cz]["units"];
+                        var units = this.engine.worldHandler.world[z][cx][cz]["units"];
 
                         //log(units);
 
@@ -276,4 +275,5 @@ var Server = Class.extend({
     }
 });
 
-var server = new Server();
+
+module.exports = Server;

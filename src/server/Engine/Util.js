@@ -14,8 +14,9 @@
     You should have received a copy of the GNU General Public License
     along with Ironbane MMO.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-var walk = function(dir, done) {
+var fs = require('fs');
+module.exports = {
+walk: function(dir, done) {
   var results = [];
   fs.readdir(dir, function(err, list) {
     if (err) return done(err);
@@ -37,7 +38,7 @@ var walk = function(dir, done) {
       });
     })();
   });
-};
+}};
 
 function RandomClamped() { return (Math.random()*2)-1; }
 

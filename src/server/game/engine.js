@@ -3,7 +3,12 @@ var events = require('events'),
     sys = require('sys'),
     log = console.log,
     _ = require('underscore'),
-    Class = require('../../common/class');
+    Class = require('../../common/class'),
+    WorldHandler = require('../Engine/WorldHandler'),
+    SocketHandler = require('../Engine/SocketHandler'),
+
+
+ fs = require('fs');
 
 // enhance default class
 sys.inherits(Class, events.EventEmitter);
@@ -57,7 +62,10 @@ var GameEngine = Class.extend({
     init: function(settings) {
         var server = this;
         _.extend(server, settings);
-
+        this.worldHandler = new WorldHandler();
+        this.worldHandler.engine = this;
+        this.socketHandler = new SocketHandler();
+        this.socketHandler.engine = this;
         server.startTime = -1;
         server.lastTime = 0;
         // in case we need to clear these...

@@ -15,13 +15,15 @@
     along with Ironbane MMO.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-var dataPath = clientDir + 'plugins/game/data';
+var Class = require('../../common/class'),
+config = require('../../../nconf'),
+walk = require('./Util').walk,
+fs = require('fs');
 
 var WorldHandler = Class.extend({
-  Init: function() {
+  init: function() {
 
-
+this.dataPath = config.get('clientDir') + 'plugins/game/data';
     // World structure
     // [zone][cx][cz]
     this.world = {};
@@ -162,7 +164,7 @@ var WorldHandler = Class.extend({
 
     this.world = {};
 
-    walk(dataPath, function(err, results) {
+    walk(this.dataPath, function(err, results) {
       if (err) throw err;
     var rl = results.length;
       for (var r=0;r<rl;r++) {
@@ -426,7 +428,7 @@ var WorldHandler = Class.extend({
   },
   LoadCell: function(zone, cellX, cellZ) {
     // Query the entry
-    var path = dataPath+"/"+zone+"/"+cellX+"/"+cellZ;
+    var path = this.dataPath+"/"+zone+"/"+cellX+"/"+cellZ;
 
     fsi.mkdirSync(path, 0777, true, function (err) {
       if (err) {
@@ -792,6 +794,9 @@ var WorldHandler = Class.extend({
     }
     return ++worldHandler.world[zone].waypointIDCount;
   }
-});
 
-var worldHandler = new WorldHandler();
+  
+}
+);
+
+module.exports = WorldHandler;

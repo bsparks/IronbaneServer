@@ -71,7 +71,7 @@ process.on('uncaughtException', function(e) {
 });
 
 var includes = [
-    './src/server/Engine/Vector3.js',
+    /*'./src/server/Engine/Vector3.js',
     './src/server/Engine/Util.js',
     './Init.js',
     './src/server/External/Shared.js',
@@ -120,12 +120,14 @@ var includes = [
     './src/server/Game/Special/Sign.js',
     './src/server/Game/Special/HeartPiece.js',
     './src/server/Game/Special/MusicPlayer.js',
-    './Server.js'
+    */
+    //'./Server.js'
 ];
 
 // create game server, do it first so that the other 2 "servers" can query it
+console.log("making ironbanegame");
 var IronbaneGame = require('./src/server/game');
-
+console.log('done making ironbanegame');
 // create express.io server
 var HttpServer = require('./src/server/http/server').Server,
     httpServer = new HttpServer();
@@ -135,15 +137,17 @@ var io = httpServer.server.io,
     ioApp = httpServer.server;
 
 // load these files AFTER the servers as they rely on some global stuff from them
-for (var f = 0; f < includes.length; f++) {
-    log("Loading: " + includes[f]);
-    eval(fs.readFileSync(includes[f]) + '');
-}
-
+//for (var f = 0; f < includes.length; f++) {
+ //   log("Loading: " + includes[f]);
+//    eval(fs.readFileSync(includes[f]) + '');
+//}
+var _server = require('./Server');
+    IronbaneGame.server = new _server();
+    IronbaneGame.server.engine = IronbaneGame;
 // this replaces MainLoop, must go here since server hasn't been defined earlier...
 IronbaneGame.on('tick', function(elapsed) {
     // eventually we wouldn't be accessing the global var here...
-    server.Tick(elapsed);
+    IronbaneGame.server.Tick(elapsed);
 });
 
 // Necessary to prevent 'Mysql has gone away' errors
@@ -184,7 +188,7 @@ function keepAlive() {
     return;
 }
 setInterval(keepAlive, 10000);
-
+/*
 setInterval(function autoSave() {
     log("Auto-saving all players...");
     worldHandler.LoopUnits(function(unit) {
@@ -193,7 +197,7 @@ setInterval(function autoSave() {
         }
     });
 }, 60 * 1 * 1000);
-
+*/
 // setup REPL for console server mgmt
 var startREPL = function() {
     var repl = require('repl'); // native node

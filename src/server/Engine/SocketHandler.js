@@ -16,6 +16,7 @@
 */
 
 var characterIDCount = 1;
+var Class = require('../../common/class');
 
 var SocketHandler = Class.extend({
     bans: [],
@@ -1858,5 +1859,5 @@ var SocketHandler = Class.extend({
 
     }
 });
-
-var socketHandler = new SocketHandler();
+module.exports = SocketHandler;
+//var socketHandler = new SocketHandler();
