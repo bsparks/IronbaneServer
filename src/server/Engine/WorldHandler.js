@@ -17,13 +17,18 @@
 
 var Class = require('../../common/class'),
 config = require('../../../nconf'),
-walk = require('./Util').walk,
+//walk = require('./Util').walk,
+//walk = require('node-utils').walk,
+wrench = require('wrench'),
+cellSize = require('../External/Shared').cellSize;
+_ = require('underscore'),
+CellToWorldCoordinates = require('../External/Util').CellToWorldCoordinates,
 fs = require('fs');
 
 var WorldHandler = Class.extend({
   init: function() {
 
-this.dataPath = config.get('clientDir') + 'plugins/game/data';
+this.dataPath = config.get('clientDir') + 'plugins\\game\\data';
     // World structure
     // [zone][cx][cz]
     this.world = {};
@@ -156,33 +161,34 @@ this.dataPath = config.get('clientDir') + 'plugins/game/data';
     return true;
   },
   BuildWorldStructure: function(zone, cx, cz) {
-    if ( ISDEF(zone) && !ISDEF(worldHandler.world[zone]) ) worldHandler.world[zone] = {};
-    if ( ISDEF(cx) && !ISDEF(worldHandler.world[zone][cx]) ) worldHandler.world[zone][cx] = {};
-    if ( ISDEF(cz) && !ISDEF(worldHandler.world[zone][cx][cz]) ) worldHandler.world[zone][cx][cz] = {};
+    if ( !_.isUndefined(zone) && _.isUndefined(this.world[zone]) ) this.world[zone] = {};
+    if ( !_.isUndefined(cx) && _.isUndefined(this.world[zone][cx]) ) this.world[zone][cx] = {};
+    if ( !_.isUndefined(cz) && _.isUndefined(this.world[zone][cx][cz]) ) this.world[zone][cx][cz] = {};
   },
   LoadWorldLight: function() {
-
+    var worldHandler = this;
     this.world = {};
-
-    walk(this.dataPath, function(err, results) {
+    dataPath = this.dataPath
+    console.log(dataPath);
+    wrench.readdirRecursive(dataPath, function(err, results) {
+      //console.log(results);
       if (err) throw err;
+      if (results === null) return;
     var rl = results.length;
       for (var r=0;r<rl;r++) {
-        results[r] = results[r].replace(dataPath+"/", "");
+        results[r] = results[r].replace(dataPath+"\\", "");
 
-        var data = results[r].split("/");
+        var data = results[r].split("\\");
+       //log(data);
 
-        //log(data);
-
-        var zone = data[0];
-        var cx = data[1];
-        var cz = data[2];
+        var zone = parseInt(data[0], 10);
+        var cx = parseInt(data[1], 10);
+        var cz = parseInt(data[2], 10);
 
         var file = data[3];
-
-        if ( !isNumber(zone) ) continue;
-        if ( !isNumber(cx) ) continue;
-        if ( !isNumber(cz) ) continue;
+        if ( !_.isNumber(zone) ) continue;
+        if ( !_.isNumber(cx) ) continue;
+        if ( !_.isNumber(cz) ) continue;
 
 
         worldHandler.BuildWorldStructure(zone, cx, cz);
@@ -209,12 +215,12 @@ this.dataPath = config.get('clientDir') + 'plugins/game/data';
         worldHandler.world[zone][cx][cz].units = [];
         worldHandler.world[zone][cx][cz].hasLoadedUnits = false;
 
-        log("Loaded cell ("+cx+","+cz+") in zone "+zone);
+        console.log("Loaded cell ("+cx+","+cz+") in zone "+zone);
 
         worldHandler.LoadUnits(zone, cx, cz);
       }
 
-      worldHandler.hasLoadedWorld = true;
+      this.hasLoadedWorld = true;
 
     });
 
@@ -295,7 +301,7 @@ this.dataPath = config.get('clientDir') + 'plugins/game/data';
   LoadUnits: function(zone, cellX, cellZ) {
 
 
-    var worldPos = CellToWorldCoordinates(cellX, cellZ, cellSize);
+    var worldPos = this.engine.CellToWorldCoordinates(cellX, cellZ, cellSize);
 
 
 
