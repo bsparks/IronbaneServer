@@ -3,33 +3,32 @@
  * and open the template in the editor.
  */
 
-
-var cellSize = 96+16;
-var cellSizeHalf = cellSize/2;
-var cellLoadRange = 2;
-
-
-var unitAcceleration = 20;
+exports.module = {
+cellSize : 96+16,
+cellLoadRange : 2,
 
 
-var dayTime = 60 * 15;
-// var dayTime = 90;
+unitAcceleration : 20,
 
 
-var worldScale = 2;
+ dayTime : 60 * 15,
+//  dayTime : 90,
 
-var lootBagTemplate = 2;
-var movingObstacleTemplate = 4;
-var toggleableObstacleTemplate = 5;
-var leverTemplate = 6;
-var teleportEntranceTemplate = 7;
-var teleportExitTemplate = 8;
-var signTemplate = 9;
-var lootableMeshTemplate = 10;
-var heartPieceTemplate = 11;
-var musicPlayerTemplate = 71;
 
-var UnitTypeEnum = {
+ worldScale : 2,
+
+ lootBagTemplate : 2,
+ movingObstacleTemplate : 4,
+ toggleableObstacleTemplate : 5,
+ leverTemplate : 6,
+ teleportEntranceTemplate : 7,
+ teleportExitTemplate : 8,
+ signTemplate : 9,
+ lootableMeshTemplate : 10,
+ heartPieceTemplate : 11,
+ musicPlayerTemplate : 71,
+
+ UnitTypeEnum : {
   PLAYER: 0,
   NPC: 1,
   LOOTABLE: 2,
@@ -53,17 +52,18 @@ var UnitTypeEnum = {
   WANDERER:23,
   TURRET_STRAIGHT:24,
   TURRET_KILLABLE:25
-};
-
-var ZoneTypeEnum = {
+},
+// this is in ib_zone_type
+/*
+ ZoneTypeEnum : {
   WORLD: 1,
   DUNGEON : 2,
   MAINMENU : 3
-};
-
-var zoneTypeConfig = {};
-
-zoneTypeConfig[ZoneTypeEnum.WORLD] = {
+},
+*/
+/*
+ zoneTypeConfig : {
+  ZoneTypeEnum.WORLD : {
   'enableWater': true,
   'waterLevel': -1,
   'waterTexture': 1650,
@@ -74,9 +74,9 @@ zoneTypeConfig[ZoneTypeEnum.WORLD] = {
   'skyboxShader': "world",
   "noTerrain": false,
   "music": ["ib2"]
-};
+},
 
-zoneTypeConfig[ZoneTypeEnum.DUNGEON] = {
+ZoneTypeEnum.DUNGEON : {
   'enableWater': true,
   'waterLevel': -1,
   'waterTexture': 1650,
@@ -87,9 +87,9 @@ zoneTypeConfig[ZoneTypeEnum.DUNGEON] = {
   'skyboxShader': "dungeon",
   "noTerrain": false,
   "music": ["ib2"]
-};
+},
 
-zoneTypeConfig[ZoneTypeEnum.MAINMENU] = {
+ZoneTypeEnum.MAINMENU : {
   'enableWater': false,
   'waterLevel': -1,
   'waterTexture': 1650,
@@ -100,10 +100,12 @@ zoneTypeConfig[ZoneTypeEnum.MAINMENU] = {
   'skyboxShader': "dungeon",
   "noTerrain": true,
   "music": []
-};
+}
+},
+*/
 
 
-var LootBagTypeEnum = {
+ LootBagTypeEnum : {
   COMMON: 0,
   UNCOMMON: 1,
   EPIC: 2,
@@ -111,39 +113,39 @@ var LootBagTypeEnum = {
 
   CHEST: 11,
   BOOKSHELVES: 12
-};
+},
 
-var SteeringBehaviourEnum = {
+ SteeringBehaviourEnum : {
   SEEK: 0,
   ARRIVE: 1,
   PURSUIT: 2,
   INTERPOSE: 3
-};
+},
 
-var SignTypeEnum = {
+ SignTypeEnum : {
   DIRECTION: 1,
   NORMAL: 2,
   HUGE: 3
-};
+},
 
 
-var WeaponRanges = {
+ WeaponRanges : {
   sword:2,
   dagger:5,
   axe:4,
   bow:15,
   staff:15
-};
+},
 
-var ColorEnum = {
+ ColorEnum : {
   WHITE: 0xFFFFFF,
   LIGHTBLUE: 0x92aafd,
   RED: 0xFF0000,
   GREEN: 0x00FF00,
   BLUE: 0x0000FF
-};
+},
 
-var MovingObstacleMovementTypeEnum = {
+ MovingObstacleMovementTypeEnum : {
   SineWaveX: 1,
   SineWaveY: 2,
   SineWaveZ: 3,
@@ -160,32 +162,29 @@ var MovingObstacleMovementTypeEnum = {
   RotationYZ: 26,
   RotationXYZ: 27,
   RotationXYZ2: 28
-};
+},
 
-var ToggleableObstacleMovementTypeEnum = {
+ ToggleableObstacleMovementTypeEnum : {
   DoorX : 1,
   DoorY : 2,
   DoorZ : 3
-};
+},
 
-var UserManagementTypeEnum = {
+ UserManagementTypeEnum : {
   LIGHTWARN : 0,
   SERIOUSWARN : 1,
   KICK : 2,
   BAN : 3
-};
+},
 
-var meleeTimeout = 0.5;
-var meleeRange = 3.0;
+ meleeTimeout : 0.5,
+ meleeRange : 3.0,
 
-var maxHealth = 20;
+ maxHealth : 20,
 
-function CalculateItemPrice(item) {
+CalculateItemPrice : function(item) {
     // for now use basevalue directly, eventually will have modifiers on the shopkeep
     return item.basevalue || 0;
 }
 
-
-module.exports.cellSize = cellSize;
-
-module.exports.cellSizeHalf = cellSizeHalf;
+}
