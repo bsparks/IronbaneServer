@@ -125,9 +125,7 @@ var includes = [
 ];
 
 // create game server, do it first so that the other 2 "servers" can query it
-console.log("making ironbanegame");
 var IronbaneGame = require('./src/server/game')(mysql);
-console.log('done making ironbanegame');
 // create express.io server
 var HttpServer = require('./src/server/http/server').Server,
     httpServer = new HttpServer();

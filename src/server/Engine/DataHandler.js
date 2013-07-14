@@ -22,30 +22,35 @@
 
  var   Class = require('../../common/class');
 var DataHandler = Class.extend({
-    Init: function() {
-        this.Load();
+    init: function(db) {
+        this.Load(db);
     },
-    Load: function() {
-
-        this.items = {};
-        this.units = {};
-
-        mysql.query('SELECT * FROM ib_item_templates',
+    Load: function(db) {
+        var dataHandler = this;
+        this.itemsLoaded = false;
+        this.unitsLoaded = false;
+        dataHandler.items = [];
+        dataHandler.units = [];
+        db.query('SELECT * FROM ib_item_templates',
             function (err, results, fields) {
                 if (err) throw err;
                 for(var u=0;u<results.length;u++) {
                     var itemdata = results[u];
                     dataHandler.items[itemdata.id] = itemdata;
                 }
+                dataHandler.itemsLoaded = true;
+                console.log("loaded item_templates: " + dataHandler.items.length)
             });
 
-        mysql.query('SELECT * FROM ib_unit_templates',
+        db.query('SELECT * FROM ib_unit_templates',
             function (err, results, fields) {
                 if (err) throw err;
                 for(var u=0;u<results.length;u++) {
                     var unitdata = results[u];
                     dataHandler.units[unitdata.id] = unitdata;
                 }
+                dataHandler.unitsLaded = true;
+        console.log("loaded unit_templates: "+ dataHandler.units.length)
             });
     }
 });

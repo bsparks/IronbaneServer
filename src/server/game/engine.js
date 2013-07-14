@@ -4,10 +4,6 @@ var events = require('events'),
     log = console.log,
     _ = require('underscore'),
     Class = require('../../common/class'),
-    WorldHandler = require('../Engine/WorldHandler'),
-    SocketHandler = require('../Engine/SocketHandler'),
-
-    DataHandler = require('../Engine/DataHandler'),
 
 
  fs = require('fs');
@@ -61,17 +57,11 @@ var loop = function(server) {
 var GameEngine = Class.extend({
     autoBackup: true,
     autoBackupInterval: (3600 * 24 * 1000),
-    init: function(settings) {
+    init: function(settings, handlers) {
+        _.extend(this, settings);
+        this.addHandlers(handlers);
         var server = this;
-        _.extend(server, settings);
-        this.worldHandler = new WorldHandler();
-        this.worldHandler.engine = this;
-
-        this.socketHandler = new SocketHandler();
-        this.socketHandler.engine = this;
-
-        this.dataHandler = new DataHandler();
-        this.dataHandler.engine = this;
+        
         server.startTime = -1;
         server.lastTime = 0;
         // in case we need to clear these...
@@ -83,6 +73,14 @@ var GameEngine = Class.extend({
         }
 
         server.emit('init');
+    },
+    addHandlers: function(settings) {
+        _.extend(this, settings);
+        var engine = this;
+        _.each(_.keys(settings), function(key){
+            engine[key].engine = engine;
+        });
+        
     },
     doBackup: function() {
         var server = this;
@@ -108,10 +106,10 @@ var GameEngine = Class.extend({
             return;
         }
 
+        console.log("------------------starting the engine");
         this.isRunning = true;
         this.startTime = Date.now();
         loop(this);
-
         this.emit('start');
     },
     stop: function() {

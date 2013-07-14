@@ -20,16 +20,19 @@ config = require('../../../nconf'),
 //walk = require('./Util').walk,
 //walk = require('node-utils').walk,
 wrench = require('wrench'),
-cellSize = require('../External/Shared').cellSize,
-cellSizeHalf = require('../External/Shared').cellSizeHalf,
+shared = require('../External/Shared'),
 _ = require('underscore'),
+events = require('events'),
+    sys = require('sys'),
 CellToWorldCoordinates = require('../External/Util').CellToWorldCoordinates,
 fs = require('fs');
 
+sys.inherits(Class, events.EventEmitter);
 var WorldHandler = Class.extend({
   init: function() {
+    console.log("creating the worldHandler");
 
-this.dataPath = config.get('clientDir') + 'plugins/game/data';
+    this.dataPath = config.get('clientDir') + 'plugins/game/data';
     // World structure
     // [zone][cx][cz]
     this.world = {};
@@ -42,7 +45,10 @@ this.dataPath = config.get('clientDir') + 'plugins/game/data';
 
     this.awake = false;
     this.hasLoadedWorld = false;
-
+    this.once('start', function() {
+      this.Awake();
+    })  ;
+    this.Awake();
 
   },
   Awake: function() {
@@ -53,18 +59,18 @@ this.dataPath = config.get('clientDir') + 'plugins/game/data';
 
 
     // All units ready! Awaken!
-    worldHandler.LoopUnits(function(u){
+    this.LoopUnits(function(u){
       u.Awake();
     });
 
-    log("World has awaken!");
+    console.log("World has awaken!");
     this.awake = true;
 
   //worldHandler.LoadSwitches();
   },
   BuildZoneWaypoints: function() {
     // Load all waypoints!
-
+    console.log("building zone waypoints");
 
     var count = 0;
     for(var z in this.world) {
@@ -100,13 +106,13 @@ this.dataPath = config.get('clientDir') + 'plugins/game/data';
 
     }
 
-    worldHandler.LoopUnits(function(u){
+    this.LoopUnits(function(u){
       if ( u instanceof Actor ) {
         u.BuildWaypoints();
       }
     });
 
-    log("Loaded "+count+" waypoints in total");
+    console.log("Loaded "+count+" waypoints in total");
 
   },
   Tick: function(dTime) {
@@ -177,9 +183,9 @@ this.dataPath = config.get('clientDir') + 'plugins/game/data';
       if (results === null) return;
     var rl = results.length;
       for (var r=0;r<rl;r++) {
-        results[r] = results[r].replace(dataPath+"/", "");
+        results[r] = results[r].replace(dataPath+"\\", "");
 
-        var data = results[r].split("/");
+        var data = results[r].split("\\");
        //log(data);
 
         var zone = parseInt(data[0], 10);
@@ -191,7 +197,7 @@ this.dataPath = config.get('clientDir') + 'plugins/game/data';
         if ( !_.isNumber(cx) ) continue;
         if ( !_.isNumber(cz) ) continue;
 
-
+        console.log(data)
         worldHandler.BuildWorldStructure(zone, cx, cz);
 
         // Load navigation graph, even in a light world because we need it
@@ -302,28 +308,26 @@ this.dataPath = config.get('clientDir') + 'plugins/game/data';
   LoadUnits: function(zone, cellX, cellZ) {
 
 
-    var worldPos = CellToWorldCoordinates(cellX, cellZ, cellSize);
+    var worldPos = CellToWorldCoordinates(cellX, cellZ, shared.cellSize);
     console.log(worldPos);
 
     var worldHandler = this;
-console.log(this.engine);
-
+    var cellSizeHalf = shared.cellSize/2;
       this.engine.mysql.query('SELECT * FROM ib_units WHERE zone = ? AND x > ? AND z > ? AND x < ? AND z < ?',
         [zone,(worldPos.x-cellSizeHalf),(worldPos.z-cellSizeHalf),(worldPos.x+cellSizeHalf),(worldPos.z+cellSizeHalf)],
         function (err, results, fields) {
 
           if (err) throw err;
 
-          for(var u=0;u<results.length;u++) {
+          _.each(results, function(unitdata) {
 
 
-            var unitdata = results[u];
 
 
             worldHandler.MakeUnitFromData(unitdata);
 
 
-          }
+          });
 
           worldHandler.world[zone][cellX][cellZ].hasLoadedUnits = true;
 
@@ -342,7 +346,7 @@ console.log(this.engine);
       data.data = JSON.parse(data.data);
     }
 
-    if ( !ISDEF(this.engine.dataHandler.units[data.template]) ) {
+    if ( _.isUndefined(this.engine.dataHandler.units[data.template]) ) {
       log("Warning! Unit template "+data.template+" not found!");
       log("Cleaning up MySQL...");
 
@@ -352,6 +356,7 @@ console.log(this.engine);
 
       return null;
     }
+    console.log( "making units");
 
     data.template = this.engine.dataHandler.units[data.template];
     // Depending on the param, load different classes
