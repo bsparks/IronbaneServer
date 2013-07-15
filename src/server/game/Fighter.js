@@ -19,7 +19,7 @@ var battleStatusTimeout = 10.0;
 var Actor = require('./Actor');
 var Fighter = Actor.extend({
     attackTimeout: 1,
-    Init: function(data) {
+    init: function(data) {
         this._super(data);
 
         this.sendRotationPacketY = true;

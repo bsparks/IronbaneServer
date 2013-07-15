@@ -18,7 +18,7 @@
 
 var Unit = require('../Unit');
 var MovingObstacle = Unit.extend({
-	Init: function(data) {
+	init: function(data) {
 	
 
              this._super(data);

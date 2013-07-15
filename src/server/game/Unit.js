@@ -17,7 +17,7 @@
 
 var Class = require('../../common/class');
 var Unit = Class.extend({
-  Init: function(data) {
+  init: function(data) {
 
     SetDataAll(this, data);
 

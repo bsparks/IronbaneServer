@@ -18,7 +18,7 @@
 
 
 var StateMachine = Class.extend({
-	Init: function(owner, currentState, globalState) {
+	init: function(owner, currentState, globalState) {
 
 		this.owner = owner;
 

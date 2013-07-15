@@ -19,7 +19,7 @@
 
 
 var Wander = State.extend({
-	Init: function() {
+	init: function() {
 
 
 

@@ -17,7 +17,7 @@
 
 var Unit = require('./Unit');
 var MovingUnit = Unit.extend({
-    Init: function(data) {
+    init: function(data) {
 
 
         this._super(data);

@@ -17,7 +17,7 @@
 
 
 var Switch = Class.extend({
-	Init: function(id, output1, output2, output3, output4) {
+	init: function(id, output1, output2, output3, output4) {
 
             this.id = id;
 

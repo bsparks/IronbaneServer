@@ -17,7 +17,7 @@
 
 
 var Turret = State.extend({
-  Init: function() {
+  init: function() {
 
     this.attackTimeout = 0.0;
   },

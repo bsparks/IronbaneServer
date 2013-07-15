@@ -17,7 +17,7 @@
 var Unit = require('./Unit');
 var Lootable = Unit.extend({
     lifeTime: 0,
-    Init: function(data, loadItems) {
+    init: function(data, loadItems) {
         this._super(data);
 
         // HACKY HACKY!!! See NPC

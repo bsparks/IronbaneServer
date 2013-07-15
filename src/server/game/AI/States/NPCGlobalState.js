@@ -17,7 +17,7 @@
 
 
 var NPCGlobalState = State.extend({
-	Init: function() {
+	init: function() {
 	
 	
 	},

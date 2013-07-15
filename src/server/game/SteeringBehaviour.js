@@ -22,7 +22,7 @@ var Deceleration = {
 };
 
 var SteeringBehaviour = Class.extend({
-    Init: function(unit) {
+    init: function(unit) {
         this.unit = unit;
 
 

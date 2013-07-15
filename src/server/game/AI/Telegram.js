@@ -19,7 +19,7 @@
 
 
 var Telegram = Class.extend({
-	Init: function(sender, receiver, message, extraInfo) {
+	init: function(sender, receiver, message, extraInfo) {
 	
 		this.sender = sender;
 		this.receiver = receiver;

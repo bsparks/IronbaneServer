@@ -16,7 +16,7 @@
 */
 
 var ConsoleHandler = Class.extend({
-  Init: function() {
+  init: function() {
     this.AccessLevel = {
       GUEST : 0,
       PLAYER : 1,

@@ -22,7 +22,7 @@ var MessageType = {
 
 
 var MessageDispatcher = Class.extend({
-	Init: function() {	
+	init: function() {	
 	
 	},
 	Discharge: function(receiver, telegram) {

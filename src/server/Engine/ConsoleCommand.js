@@ -17,7 +17,7 @@
 
 
 var ConsoleCommand = Class.extend({
-    Init: function(accessLevel, name, description, paramsyntax, paramdefaults, command) {
+    init: function(accessLevel, name, description, paramsyntax, paramdefaults, command) {
 
 		this.name = name;
 		this.description = description;

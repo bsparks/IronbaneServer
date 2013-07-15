@@ -17,7 +17,7 @@
 
 
 var ChaseEnemy = State.extend({
-  Init: function(enemy) {
+  init: function(enemy) {
 
     this.enemy = enemy;
 

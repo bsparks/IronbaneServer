@@ -17,7 +17,7 @@
 
 
 var EmptyState = State.extend({
-	Init: function() {
+	init: function() {
 	
 	
 	},

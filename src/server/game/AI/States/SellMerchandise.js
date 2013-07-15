@@ -16,7 +16,7 @@
 */
 
 var SellMerchandise = State.extend({
-    Init: function() {
+    init: function() {
 
 
     },

@@ -17,7 +17,7 @@
 
 
 var ExploreAndLookForEnemies = State.extend({
-	Init: function() {
+	init: function() {
 
             this.walkBackTimeout = 0;
 

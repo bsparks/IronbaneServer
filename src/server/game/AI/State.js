@@ -17,7 +17,7 @@
 
 
 var State = Class.extend({
-	Init: function() {
+	init: function() {
 
 
 	},

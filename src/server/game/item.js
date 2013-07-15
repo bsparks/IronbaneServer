@@ -22,7 +22,7 @@ var Item = Class.extend({
     attr1: 0,
     data: {},
     value: 0,
-    Init: function(template, config) {
+    init: function(template, config) {
         if(!template) {
             throw "must init using a template!";
         }

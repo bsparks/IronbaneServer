@@ -18,7 +18,7 @@
 
 var Fighter = require('./Fighter');
 var NPC = Fighter.extend({
-    Init: function(data) {
+    init: function(data) {
 
 
 

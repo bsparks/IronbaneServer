@@ -17,7 +17,7 @@
 
 var MovingUnit = require('./MovingUnit');
 var Actor = MovingUnit.extend({
-  Init: function(data) {
+  init: function(data) {
 
     this._super(data);
 

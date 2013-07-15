@@ -15,7 +15,7 @@
     along with Ironbane MMO.  If not, see <http://www.gnu.org/licenses/>.
 */
 var MusicPlayer = Unit.extend({
-    Init: function(data) {
+    init: function(data) {
 
         this._super(data);
 
