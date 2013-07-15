@@ -17,11 +17,17 @@
 
 var characterIDCount = 1;
 var Class = require('../../common/class');
+var _ = require('underscore');
+var Player = require('../Game/Player');
+
 
 var SocketHandler = Class.extend({
     bans: [],
     onlinePlayers: [],
-    Init: function() {
+    init: function(db, io) {
+        console.log("creating socketHandler");
+        this.io = io;
+        this.mysql = db;
         var me = this;
 
         this.UpdateBans();
@@ -29,7 +35,7 @@ var SocketHandler = Class.extend({
         // temp until service implemented
         function loadCharItems(chardata, callback) {
             chardata.items = [];
-            mysql.query('SELECT * FROM ib_items WHERE owner = ?', [chardata.id], function(err, results) {
+            me.mysql.query('SELECT * FROM ib_items WHERE owner = ?', [chardata.id], function(err, results) {
                 if (err) {
                     // todo: we should prolly output the log to a file somewhere to find these issues...
                     log('error getting items for character ' + chardata.id + ': ' + err);
@@ -124,13 +130,13 @@ var SocketHandler = Class.extend({
             });
 
             if (req.user) {
-                mysql.query('UPDATE bcs_users SET characterused = ? WHERE id = ?', [chardata.id, req.user.id]);
+                this.mysql.query('UPDATE bcs_users SET characterused = ? WHERE id = ?', [chardata.id, req.user.id]);
             }
         }
 
         // and another temp method...
         function loadCharacterData(id, callback) {
-            mysql.query('select * from ib_characters where id=?', [id], function(err, result) {
+            me.mysql.query('select * from ib_characters where id=?', [id], function(err, result) {
                 if(err) {
                     callback('db error loading char! ' + err);
                     return;
@@ -185,7 +191,7 @@ var SocketHandler = Class.extend({
                     }
 
                     // Check if the character is already being used in the server (since they bypassed the member check)
-                    var gu = worldHandler.FindUnit(character.id);
+                    var gu = me.engine.worldHandler.FindUnit(character.id);
                     if (gu) {
                         reply({
                             errmsg: "There is already a guest playing under your credentials!"
@@ -1380,7 +1386,7 @@ var SocketHandler = Class.extend({
                     unit.UpdateOtherUnitsList();
                 });
 
-                mysql.query('DELETE FROM ib_units WHERE ?',
+                me.mysql.query('DELETE FROM ib_units WHERE ?',
                 {
                     id:-id
                 },
@@ -1445,7 +1451,7 @@ var SocketHandler = Class.extend({
 
                 data.id = -server.GetAValidNPCID();
 
-                mysql.query('INSERT INTO ib_units SET ?',
+                me.mysql.query('INSERT INTO ib_units SET ?',
                 {
                     id:data.id,
                     zone:data.zone,
@@ -1516,7 +1522,7 @@ var SocketHandler = Class.extend({
 
                 if ( data.global ) {
                     _.each(data.metadata, function(value, key, list) {
-                        mysql.query('UPDATE ib_meshes SET '+key+' = ? WHERE id = ?', ["tiles/"+value,data.id]);
+                        me.mysql.query('UPDATE ib_meshes SET '+key+' = ? WHERE id = ?', ["tiles/"+value,data.id]);
 
                         data.metadata[key] = "tiles/"+value;
                     });
@@ -1849,7 +1855,7 @@ var SocketHandler = Class.extend({
     UpdateBans: function() {
         var me = this;
 
-        mysql.query('SELECT * FROM ib_bans', function (err, results, fields) {
+        me.mysql.query('SELECT * FROM ib_bans', function (err, results, fields) {
             me.bans = results;
         });
     },

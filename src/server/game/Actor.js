@@ -15,7 +15,7 @@
     along with Ironbane MMO.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+var MovingUnit = require('./MovingUnit');
 var Actor = MovingUnit.extend({
   Init: function(data) {
 
@@ -155,3 +155,4 @@ var Actor = MovingUnit.extend({
     this.stateMachine.HandleMessage(message, data);
   }
 });
+module.exports = Actor;

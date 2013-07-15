@@ -23,15 +23,17 @@
  var   Class = require('../../common/class');
 var DataHandler = Class.extend({
     init: function(db) {
-        this.Load(db);
+        console.log("creating dataHandler");
+        this.mysql = db;
+        this.Load();
     },
-    Load: function(db) {
+    Load: function() {
         var dataHandler = this;
         this.itemsLoaded = false;
         this.unitsLoaded = false;
         dataHandler.items = [];
         dataHandler.units = [];
-        db.query('SELECT * FROM ib_item_templates',
+        this.mysql.query('SELECT * FROM ib_item_templates',
             function (err, results, fields) {
                 if (err) throw err;
                 for(var u=0;u<results.length;u++) {
@@ -42,15 +44,15 @@ var DataHandler = Class.extend({
                 console.log("loaded item_templates: " + dataHandler.items.length)
             });
 
-        db.query('SELECT * FROM ib_unit_templates',
+        this.mysql.query('SELECT * FROM ib_unit_templates',
             function (err, results, fields) {
                 if (err) throw err;
                 for(var u=0;u<results.length;u++) {
                     var unitdata = results[u];
                     dataHandler.units[unitdata.id] = unitdata;
                 }
-                dataHandler.unitsLaded = true;
-        console.log("loaded unit_templates: "+ dataHandler.units.length)
+                dataHandler.unitsLoaded = true;
+        console.log("loaded unit_templates: "+ dataHandler.units.length);
             });
     }
 });

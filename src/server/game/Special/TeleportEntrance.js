@@ -14,7 +14,7 @@
     You should have received a copy of the GNU General Public License
     along with Ironbane MMO.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+var Unit = require('../Unit');
 var TeleportEntrance = Unit.extend({
     Init: function(data) {
 
@@ -78,3 +78,4 @@ var TeleportEntrance = Unit.extend({
 
     }
 });
+module.exports = TeleportEntrance;

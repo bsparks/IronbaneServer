@@ -16,7 +16,7 @@
 */
 
 
-
+var Unit = require('../Unit');
 var Lever = Unit.extend({
 	Init: function(data) {
 	
@@ -95,6 +95,4 @@ var Lever = Unit.extend({
             
         }
 });
-
-
-                
+module.exports = Lever;

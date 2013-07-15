@@ -17,7 +17,7 @@
 
 
 
-
+var Unit = require('../Unit');
 var ToggleableObstacle = Unit.extend({
   Init: function(data) {
 	
@@ -108,3 +108,4 @@ var ToggleableObstacle = Unit.extend({
     }
   }
 });
+module.exports = ToggleableObstacle;

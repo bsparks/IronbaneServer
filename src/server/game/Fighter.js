@@ -16,7 +16,7 @@
 */
 
 var battleStatusTimeout = 10.0;
-
+var Actor = require('./Actor');
 var Fighter = Actor.extend({
     attackTimeout: 1,
     Init: function(data) {
@@ -654,3 +654,4 @@ var Fighter = Actor.extend({
     return null;
   }
 });
+module.exports = Actor;

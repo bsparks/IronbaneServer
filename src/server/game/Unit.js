@@ -15,7 +15,7 @@
     along with Ironbane MMO.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+var Class = require('../../common/class');
 var Unit = Class.extend({
   Init: function(data) {
 
@@ -591,3 +591,4 @@ var Unit = Class.extend({
     return "zone "+this.zone+", pos "+this.position.Round().ToString();
   }
 });
+module.exports = Unit;

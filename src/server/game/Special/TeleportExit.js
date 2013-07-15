@@ -17,7 +17,7 @@
 
 
 
-
+var Unit = require('../Unit');
 var TeleportExit = Unit.extend({
     Init: function(data) {
         
@@ -32,3 +32,4 @@ var TeleportExit = Unit.extend({
 
     }
 });
+module.exports = TeleportExit;

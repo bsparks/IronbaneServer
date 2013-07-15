@@ -16,7 +16,7 @@
 */
 
 
-
+var Unit = require('../Unit');
 var MovingObstacle = Unit.extend({
 	Init: function(data) {
 	
@@ -26,3 +26,4 @@ var MovingObstacle = Unit.extend({
              
 	}
 });
+module.exports = Unit;

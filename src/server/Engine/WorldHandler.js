@@ -17,10 +17,16 @@
 
 var Class = require('../../common/class'),
 config = require('../../../nconf'),
-//walk = require('./Util').walk,
-//walk = require('node-utils').walk,
 wrench = require('wrench'),
 shared = require('../External/Shared'),
+TeleportExit = require('../Game/special/TeleportExit'),
+TeleportEntrance = require('../Game/special/TeleportEntrance'),
+NPC = require('../Game/NPC'),
+Lootable = require('../Game/Lootable'),
+ToggleableObstacle = require('../Game/Special/ToggleableObstacle'),
+Lever = require('../Game/Special/Lever'),
+MovingObstacle = require('../Game/Special/MovingObstacle'),
+Sign = require('../Game/Special/Sign'),
 _ = require('underscore'),
 events = require('events'),
     sys = require('sys'),
@@ -29,7 +35,8 @@ fs = require('fs');
 
 sys.inherits(Class, events.EventEmitter);
 var WorldHandler = Class.extend({
-  init: function() {
+  init: function(db) {
+    this.mysql = db;
     console.log("creating the worldHandler");
 
     this.dataPath = config.get('clientDir') + 'plugins/game/data';
@@ -45,11 +52,6 @@ var WorldHandler = Class.extend({
 
     this.awake = false;
     this.hasLoadedWorld = false;
-    this.once('start', function() {
-      this.Awake();
-    })  ;
-    this.Awake();
-
   },
   Awake: function() {
 
@@ -71,7 +73,6 @@ var WorldHandler = Class.extend({
   BuildZoneWaypoints: function() {
     // Load all waypoints!
     console.log("building zone waypoints");
-
     var count = 0;
     for(var z in this.world) {
 
@@ -162,9 +163,9 @@ var WorldHandler = Class.extend({
     });
   },
   CheckWorldStructure: function(zone, cx, cz) {
-    if ( ISDEF(zone) && !ISDEF(worldHandler.world[zone]) ) return false;
-    if ( ISDEF(cx) && !ISDEF(worldHandler.world[zone][cx]) ) return false;
-    if ( ISDEF(cz) && !ISDEF(worldHandler.world[zone][cx][cz]) ) return false;
+    if ( !_.isUndefined(zone) && _.isUndefined(this.world[zone])) return false;
+    if ( !_.isUndefined(cx) && _.isUndefined(this.world[zone][cx]) ) return false;
+    if ( !_.isUndefined(cz) && _.isUndefined(this.world[zone][cx][cz]) ) return false;
     return true;
   },
   BuildWorldStructure: function(zone, cx, cz) {
@@ -175,8 +176,8 @@ var WorldHandler = Class.extend({
   LoadWorldLight: function() {
     var worldHandler = this;
     this.world = {};
-    dataPath = this.dataPath
-    console.log(dataPath);
+    dataPath = this.dataPath;
+
     wrench.readdirRecursive(dataPath, function(err, results) {
       //console.log(results);
       if (err) throw err;
@@ -197,7 +198,6 @@ var WorldHandler = Class.extend({
         if ( !_.isNumber(cx) ) continue;
         if ( !_.isNumber(cz) ) continue;
 
-        console.log(data)
         worldHandler.BuildWorldStructure(zone, cx, cz);
 
         // Load navigation graph, even in a light world because we need it
@@ -222,15 +222,16 @@ var WorldHandler = Class.extend({
         worldHandler.world[zone][cx][cz].units = [];
         worldHandler.world[zone][cx][cz].hasLoadedUnits = false;
 
-        console.log("Loaded cell ("+cx+","+cz+") in zone "+zone);
 
         worldHandler.LoadUnits(zone, cx, cz);
       }
 
-      this.hasLoadedWorld = true;
+        //console.log("Loaded zone "+zone);
 
     });
 
+      console.log("worldHandler: done LoadWorldLight");
+      this.hasLoadedWorld = true;
 
 
   },
@@ -307,32 +308,23 @@ var WorldHandler = Class.extend({
   },
   LoadUnits: function(zone, cellX, cellZ) {
 
-
     var worldPos = CellToWorldCoordinates(cellX, cellZ, shared.cellSize);
-    console.log(worldPos);
-
+    
     var worldHandler = this;
     var cellSizeHalf = shared.cellSize/2;
-      this.engine.mysql.query('SELECT * FROM ib_units WHERE zone = ? AND x > ? AND z > ? AND x < ? AND z < ?',
+      this.mysql.query('SELECT * FROM ib_units WHERE zone = ? AND x > ? AND z > ? AND x < ? AND z < ?',
         [zone,(worldPos.x-cellSizeHalf),(worldPos.z-cellSizeHalf),(worldPos.x+cellSizeHalf),(worldPos.z+cellSizeHalf)],
         function (err, results, fields) {
 
           if (err) throw err;
 
           _.each(results, function(unitdata) {
-
-
-
-
             worldHandler.MakeUnitFromData(unitdata);
-
-
           });
 
           worldHandler.world[zone][cellX][cellZ].hasLoadedUnits = true;
 
         });
-
 
 
 
@@ -356,25 +348,23 @@ var WorldHandler = Class.extend({
 
       return null;
     }
-    console.log( "making units");
 
     data.template = this.engine.dataHandler.units[data.template];
     // Depending on the param, load different classes
 
-
     var unit = null;
 
     switch(data.template.type) {
-      case UnitTypeEnum.NPC:
-      case UnitTypeEnum.MONSTER:
-      case UnitTypeEnum.VENDOR:
-      case UnitTypeEnum.TURRET:
-      case UnitTypeEnum.TURRET_STRAIGHT:
-      case UnitTypeEnum.TURRET_KILLABLE:
-      case UnitTypeEnum.WANDERER:
+      case shared.UnitTypeEnum.NPC:
+      case shared.UnitTypeEnum.MONSTER:
+      case shared.UnitTypeEnum.VENDOR:
+      case shared.UnitTypeEnum.TURRET:
+      case shared.UnitTypeEnum.TURRET_STRAIGHT:
+      case shared.UnitTypeEnum.TURRET_KILLABLE:
+      case shared.UnitTypeEnum.WANDERER:
         unit = new NPC(data);
         break;
-      case UnitTypeEnum.MOVINGOBSTACLE:
+      case shared.UnitTypeEnum.MOVINGOBSTACLE:
 
         // Convert data rotations to regular members
         data.rotx = data.data.rotX;
@@ -383,7 +373,7 @@ var WorldHandler = Class.extend({
 
         unit = new MovingObstacle(data);
         break;
-      case UnitTypeEnum.TOGGLEABLEOBSTACLE:
+      case shared.UnitTypeEnum.TOGGLEABLEOBSTACLE:
 
         // Convert data rotations to regular members
         data.rotx = data.data.rotX;
@@ -392,22 +382,22 @@ var WorldHandler = Class.extend({
 
         unit = new ToggleableObstacle(data);
         break;
-      case UnitTypeEnum.TRAIN:
+      case shared.UnitTypeEnum.TRAIN:
         unit = new Train(data);
         break;
-      case UnitTypeEnum.LEVER:
+      case shared.UnitTypeEnum.LEVER:
         unit = new Lever(data);
         break;
-      case UnitTypeEnum.TELEPORTENTRANCE:
+      case shared.UnitTypeEnum.TELEPORTENTRANCE:
         unit = new TeleportEntrance(data);
         break;
-      case UnitTypeEnum.TELEPORTEXIT:
+      case shared.UnitTypeEnum.TELEPORTEXIT:
         unit = new TeleportExit(data);
         break;
-      case UnitTypeEnum.MUSICPLAYER:
+      case shared.UnitTypeEnum.MUSICPLAYER:
         unit = new MusicPlayer(data);
         break;
-      case UnitTypeEnum.SIGN:
+      case shared.UnitTypeEnum.SIGN:
 
         // Convert data rotations to regular members
         data.rotx = data.data.rotX;
@@ -416,7 +406,7 @@ var WorldHandler = Class.extend({
 
         unit = new Sign(data);
         break;
-      case UnitTypeEnum.LOOTABLE:
+      case shared.UnitTypeEnum.LOOTABLE:
 
         // Convert data rotations to regular members
         data.rotx = data.data.rotX;
@@ -425,7 +415,7 @@ var WorldHandler = Class.extend({
 
         unit = new Lootable(data, true);
         break;
-      case UnitTypeEnum.HEARTPIECE:
+      case shared.UnitTypeEnum.HEARTPIECE:
         unit = new HeartPiece(data);
         break;
       default:

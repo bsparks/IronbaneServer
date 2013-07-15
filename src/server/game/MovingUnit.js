@@ -15,7 +15,7 @@
     along with Ironbane MMO.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+var Unit = require('./Unit');
 var MovingUnit = Unit.extend({
     Init: function(data) {
 
@@ -61,3 +61,4 @@ var MovingUnit = Unit.extend({
 
     }
 });
+module.exports = MovingUnit;

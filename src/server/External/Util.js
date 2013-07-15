@@ -49,7 +49,6 @@ function WorldToCellCoordinates(x, z, cellsize) {
 
 module.exports.CellToWorldCoordinates = CellToWorldCoordinates;
 function CellToWorldCoordinates(x, z, cellsize) {
-console.log(cellsize);
   if ( cellsize % 2 != 0 ) console.error("Cellsize not dividable by 2!");
 
   var cellhalf = cellsize / 2;

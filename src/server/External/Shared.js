@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-exports.module = {
+var shared = {
 cellSize : 96+16,
 cellLoadRange : 2,
 
@@ -53,17 +53,15 @@ unitAcceleration : 20,
   TURRET_STRAIGHT:24,
   TURRET_KILLABLE:25
 },
-// this is in ib_zone_type
-/*
  ZoneTypeEnum : {
   WORLD: 1,
   DUNGEON : 2,
   MAINMENU : 3
 },
-*/
-/*
- zoneTypeConfig : {
-  ZoneTypeEnum.WORLD : {
+getZoneTypeConfig : function(zonetype) {
+  if (zonetype === ZoneTypeEnum.WORLD) 
+  {
+    return {
   'enableWater': true,
   'waterLevel': -1,
   'waterTexture': 1650,
@@ -73,10 +71,10 @@ unitAcceleration : 20,
   'cloudLevel': 15,
   'skyboxShader': "world",
   "noTerrain": false,
-  "music": ["ib2"]
-},
-
-ZoneTypeEnum.DUNGEON : {
+  "music": ["ib2"] }
+};
+},/*
+ZoneTypeEnum.DUNGEON = {
   'enableWater': true,
   'waterLevel': -1,
   'waterTexture': 1650,
@@ -89,7 +87,7 @@ ZoneTypeEnum.DUNGEON : {
   "music": ["ib2"]
 },
 
-ZoneTypeEnum.MAINMENU : {
+ZoneTypeEnum.MAINMENU = {
   'enableWater': false,
   'waterLevel': -1,
   'waterTexture': 1650,
@@ -101,8 +99,7 @@ ZoneTypeEnum.MAINMENU : {
   "noTerrain": true,
   "music": []
 }
-},
-*/
+],*/
 
 
  LootBagTypeEnum : {
@@ -188,3 +185,4 @@ CalculateItemPrice : function(item) {
 }
 
 }
+module.exports = shared;

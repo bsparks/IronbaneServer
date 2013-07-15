@@ -16,7 +16,7 @@
 */
 
 
-
+var Fighter = require('./Fighter');
 var NPC = Fighter.extend({
     Init: function(data) {
 
@@ -173,3 +173,4 @@ var NPC = Fighter.extend({
         }
     }
 });
+module.exports = NPC;

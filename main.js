@@ -125,7 +125,6 @@ var includes = [
 ];
 
 // create game server, do it first so that the other 2 "servers" can query it
-var IronbaneGame = require('./src/server/game')(mysql);
 // create express.io server
 var HttpServer = require('./src/server/http/server').Server,
     httpServer = new HttpServer();
@@ -133,6 +132,9 @@ var HttpServer = require('./src/server/http/server').Server,
 // for the global access coming...todo: refactor
 var io = httpServer.server.io,
     ioApp = httpServer.server;
+
+
+var IronbaneGame = require('./src/server/game')(mysql, io);
 
 // load these files AFTER the servers as they rely on some global stuff from them
 //for (var f = 0; f < includes.length; f++) {

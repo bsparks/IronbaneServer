@@ -78,6 +78,7 @@ var GameEngine = Class.extend({
         _.extend(this, settings);
         var engine = this;
         _.each(_.keys(settings), function(key){
+            console.log("adding " +key)
             engine[key].engine = engine;
         });
         
@@ -106,10 +107,10 @@ var GameEngine = Class.extend({
             return;
         }
 
-        console.log("------------------starting the engine");
+        console.log("starting the engine");
         this.isRunning = true;
         this.startTime = Date.now();
-        loop(this);
+        //loop(this);
         this.emit('start');
     },
     stop: function() {

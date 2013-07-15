@@ -19,8 +19,9 @@ var KickReason = {
   CHEAT: "Cheating"
 };
 
+var Fighter = require('./Fighter');
 var Player = Fighter.extend({
-  Init: function(data) {
+  init: function(data) {
 
     // Params for players are still unused
     data.param = 0;
@@ -149,7 +150,7 @@ var Player = Fighter.extend({
     var reason = reason ? "Reason: " + reason : "No reason given";
 
     var until = Math.round((new Date()).getTime() / 1000) +
-      (parseInt(hours) * 3600);
+      (parseInt(hours, 10) * 3600);
 
     var how = hours ? "permanently banned" : "banned for " + hours + " hours";
 
@@ -249,3 +250,4 @@ var Player = Fighter.extend({
 
   }
 });
+module.exports = Player;
