@@ -17,7 +17,7 @@
 
 
 
-
+var Unit = require('../Unit');
 var Sign = Unit.extend({
     Init: function(data) {
         
@@ -32,3 +32,4 @@ var Sign = Unit.extend({
 
     }
 });
+module.exports = Sign;
