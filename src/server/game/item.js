@@ -16,6 +16,8 @@
 */
 
 // instance of an item template
+var Class = require('../../common/class');
+var _ = require('underscore');
 var Item = Class.extend({
     equipped: 0,
     slot: 0,
@@ -28,7 +30,7 @@ var Item = Class.extend({
         }
 
         // todo: deglobalization
-        this.id = server.GetAValidItemID();
+        //this.id = server.GetAValidItemID();
 
         // reference to the entire template object
         this.$template = template;
@@ -62,3 +64,4 @@ var Item = Class.extend({
         return this.$template.basevalue;
     }
 });
+module.exports = Item;

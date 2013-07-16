@@ -18,13 +18,14 @@
 
 
 var Unit = require('../Unit');
+var _ = require('underscore');
 var ToggleableObstacle = Unit.extend({
   init: function(data, worldHandler) {
 	
 
     this._super(data, worldHandler);
              
-    this.on = ISDEF(this.data.startOpen) ? this.data.startOpen : false;
+    this.on = !_.isUndefined(this.data.startOpen) ? this.data.startOpen : false;
              
     this.leverList = [];
         

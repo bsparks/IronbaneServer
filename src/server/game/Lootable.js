@@ -15,6 +15,7 @@
     along with Ironbane MMO.  If not, see <http://www.gnu.org/licenses/>.
 */
 var Unit = require('./Unit');
+var Item = require('./Item');
 var WasLucky100 = require('../External/Util').WasLucky100
 var _ = require('underscore');
 var Lootable = Unit.extend({
@@ -50,7 +51,7 @@ var Lootable = Unit.extend({
 
             _.each(results, function(loot) {
                 // find a template
-                var template = dataHandler.items[loot.template];
+                var template = self.worldHandler.dataHandler.items[loot.template];
                 if(template) {
                     if (loot.data) {
                         try {
@@ -73,6 +74,7 @@ var Lootable = Unit.extend({
     },
     Restock: function() {
         //    log("Restocking...");
+        var me = this;
         this.loot = [];
         // Load loot from metadata (with percentages!)
         if (!_.isEmpty(this.data.loot)) {
@@ -86,13 +88,13 @@ var Lootable = Unit.extend({
                 }
 
                 if (templateId) {
-                    if (!ISDEF(dataHandler.items[templateId])) {
+                    if (_.isUndefined(me.worldHandler.dataHandler.items[templateId])) {
                         log("Warning! item " + templateId + " not found for Lootable " + this.id + "!");
                         continue;
                     }
 
-                    var item = new Item(dataHandler.items[templateId], {slot: l});
-                    this.loot.push(item);
+                    var item = new Item(me.worldHandler.dataHandler.items[templateId], {slot: l});
+                    me.loot.push(item);
                 }
             }
         }

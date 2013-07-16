@@ -18,10 +18,10 @@
 
 var Unit = require('../Unit');
 var MovingObstacle = Unit.extend({
-	init: function(data) {
+	init: function(data, worldHandler) {
 	
 
-             this._super(data);
+             this._super(data, worldHandler);
              
              
 	}

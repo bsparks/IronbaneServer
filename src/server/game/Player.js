@@ -21,8 +21,9 @@ var KickReason = {
 
 var Fighter = require('./Fighter');
 var Player = Fighter.extend({
-  init: function(data) {
+  init: function(data, worldHandler) {
 
+    this._super(data, worldHandler);
     // Params for players are still unused
     data.param = 0;
 
@@ -31,7 +32,6 @@ var Player = Fighter.extend({
     // Manual set type for addUnit calls
     this.type = UnitTypeEnum.PLAYER;
 
-    this._super(data);
 
 
     this.unitsInLineOfSight = [];

@@ -19,8 +19,8 @@ var battleStatusTimeout = 10.0;
 var Actor = require('./Actor');
 var Fighter = Actor.extend({
     attackTimeout: 1,
-    init: function(data) {
-        this._super(data);
+    init: function(data, worldHandler) {
+        this._super(data, worldHandler);
 
         this.sendRotationPacketY = true;
         this.respawnTimer = 0.0;

@@ -21,6 +21,7 @@
 
 
  var   Class = require('../../common/class');
+ var q = require('q');
 var DataHandler = Class.extend({
     init: function(db) {
         console.log("creating dataHandler");
@@ -29,6 +30,7 @@ var DataHandler = Class.extend({
     },
     Load: function() {
         var dataHandler = this;
+        var promise = q.defer();
         this.itemsLoaded = false;
         this.unitsLoaded = false;
         dataHandler.items = [];

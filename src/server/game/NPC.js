@@ -18,12 +18,13 @@
 
 var Fighter = require('./Fighter');
 var _ = require('underscore');
+var WasLucky100 = require('../External/Util').WasLucky100;
+var UnitTypeEnum = require('../External/Shared').UnitTypeEnum;
+var Item = require('./Item');
+
+var shared = require('../External/Shared');
 var NPC = Fighter.extend({
     init: function(data, worldHandler) {
-
-
-
-
 
         this._super(data, worldHandler);
 
@@ -98,7 +99,7 @@ var NPC = Fighter.extend({
                 var item = null;
 
                 // No percentages for vendors!
-                if (this.template.type === UnitTypeEnum.VENDOR) {
+                if (this.template.type === shared.UnitTypeEnum.VENDOR) {
                     item = parseInt(lootSplit[l], 10);
                 } else {
                     var chanceSplit = lootSplit[l].split(":");
@@ -110,12 +111,12 @@ var NPC = Fighter.extend({
 
                 if (item) {
 
-                    if (!ISDEF(dataHandler.items[item])) {
+                    if (_.isUndefined(this.worldHandler.dataHandler.items[item])) {
                         log("Warning! item " + item + " not found for NPC " + this.id + "!");
                         continue;
                     }
 
-                    var itemTemplate = dataHandler.items[item];
+                    var itemTemplate = this.worldHandler.dataHandler.items[item];
                     var temp = new Item(itemTemplate, {
                         slot: l
                     });

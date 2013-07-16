@@ -17,13 +17,17 @@
 
 var Class = require('../../common/class');
 var SetDataAll = require('../External/Util').SetDataAll;
+
+var UnitTypeEnum = require('../External/Shared').UnitTypeEnum;
 var cellSize = require('../External/Shared').cellSize;
 var _ = require('underscore');
-var Player = require('./Player');
 
 var WorldToCellCoordinates = require('../External/Util').WorldToCellCoordinates;
+
+
 var Unit = Class.extend({
   init: function(data, worldHandler) {
+
 
     //doesnt the inheritance class do this already?
     SetDataAll(this, data);
@@ -91,7 +95,6 @@ var Unit = Class.extend({
 
 
     this.standingOnUnitId = 0;
-
     if ( this.worldHandler.CheckWorldStructure(this.zone, this.cellX, this.cellZ) ) {
       this.worldHandler.world[this.zone][this.cellX][this.cellZ].units.push(this);
     }
@@ -160,7 +163,7 @@ var Unit = Class.extend({
     this.UpdateNearbyUnitsOtherUnitsLists();
 
 
-    if ( this instanceof Player && !noEmit ) {
+    if ( this.template.type === UnitTypeEnum.PLAYER && !noEmit ) {
       this.socket.emit('teleport', {
         zone:zone,
         pos:position
@@ -184,7 +187,7 @@ var Unit = Class.extend({
     this.otherUnits.push(unit);
 
     // Add the unit to ourselves clientside (only if WE are a player)
-    if ( (this instanceof Player) ) {
+    if ( this.template.type === UnitTypeEnum.PLAYER ) {
 
       var id = unit.id;
 

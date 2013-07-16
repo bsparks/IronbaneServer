@@ -19,8 +19,6 @@ var Unit = require('./Unit');
 var SteeringBehaviour = require('./SteeringBehaviour');
 var MovingUnit = Unit.extend({
     init: function(data, worldHandler) {
-
-
         this._super(data, worldHandler);
 
         //the steering behavior class

@@ -27,16 +27,19 @@ ToggleableObstacle = require('../Game/Special/ToggleableObstacle'),
 Lever = require('../Game/Special/Lever'),
 MovingObstacle = require('../Game/Special/MovingObstacle'),
 Sign = require('../Game/Special/Sign'),
+Actor = require('../Game/Actor'),
 _ = require('underscore'),
 events = require('events'),
+q = require('q'),
     sys = require('sys'),
 CellToWorldCoordinates = require('../External/Util').CellToWorldCoordinates,
 fs = require('fs');
 
 sys.inherits(Class, events.EventEmitter);
 var WorldHandler = Class.extend({
-  init: function(db) {
+  init: function(db, dataHandler) {
     this.mysql = db;
+    this.dataHandler = dataHandler;
     console.log("creating the worldHandler");
 
     this.dataPath = config.get('clientDir') + 'plugins/game/data';
@@ -48,10 +51,10 @@ var WorldHandler = Class.extend({
 
     this.switches = {};
 
+    this.hasLoadedWorld = false;
     this.LoadWorldLight();
 
-    this.awake = false;
-    this.hasLoadedWorld = false;
+   
   },
   Awake: function() {
 
@@ -103,7 +106,7 @@ var WorldHandler = Class.extend({
         }
       }
 
-      log("Loaded "+subcount+" waypoints for zone "+z+"");
+      console.log("Loaded "+subcount+" waypoints for zone "+z+"");
 
     }
 
@@ -177,13 +180,17 @@ var WorldHandler = Class.extend({
     var worldHandler = this;
     this.world = {};
     dataPath = this.dataPath;
-
+    var promises = [];
     wrench.readdirRecursive(dataPath, function(err, results) {
       //console.log(results);
       if (err) throw err;
       if (results === null) return;
-    var rl = results.length;
+      var rl = results.length;
       for (var r=0;r<rl;r++) {
+      var deferred = q.defer();
+      promises.push(deferred);
+      //console.log(r);
+       // console.log(promises)
         results[r] = results[r].replace(dataPath+"\\", "");
 
         var data = results[r].split("\\");
@@ -197,7 +204,6 @@ var WorldHandler = Class.extend({
         if ( !_.isNumber(zone) ) continue;
         if ( !_.isNumber(cx) ) continue;
         if ( !_.isNumber(cz) ) continue;
-
         worldHandler.BuildWorldStructure(zone, cx, cz);
 
         // Load navigation graph, even in a light world because we need it
@@ -208,6 +214,7 @@ var WorldHandler = Class.extend({
 
             if (stats.isFile()) {
               worldHandler.world[zone][cx][cz].graph = JSON.parse(fs.readFileSync(path+"/graph.json", 'utf8'));
+              deferred.resolve();
             }
           }
           catch (e) {
@@ -229,9 +236,8 @@ var WorldHandler = Class.extend({
         //console.log("Loaded zone "+zone);
 
     });
-
-      console.log("worldHandler: done LoadWorldLight");
-      this.hasLoadedWorld = true;
+console.log("-----> "+promises.length)
+ return q.all(promises);
 
 
   },
@@ -338,7 +344,7 @@ var WorldHandler = Class.extend({
       data.data = JSON.parse(data.data);
     }
 
-    if ( _.isUndefined(this.engine.dataHandler.units[data.template]) ) {
+    if ( _.isUndefined(this.dataHandler.units[data.template]) ) {
       log("Warning! Unit template "+data.template+" not found!");
       log("Cleaning up MySQL...");
 
@@ -349,9 +355,8 @@ var WorldHandler = Class.extend({
       return null;
     }
 
-    data.template = this.engine.dataHandler.units[data.template];
+    data.template = this.dataHandler.units[data.template];
     // Depending on the param, load different classes
-
     var unit = null;
 
     switch(data.template.type) {
@@ -371,7 +376,7 @@ var WorldHandler = Class.extend({
         data.roty = data.data.rotY;
         data.rotz = data.data.rotZ;
 
-        unit = new MovingObstacle(data);
+        unit = new MovingObstacle(data, this);
         break;
       case shared.UnitTypeEnum.TOGGLEABLEOBSTACLE:
 
@@ -386,7 +391,7 @@ var WorldHandler = Class.extend({
         unit = new Train(data);
         break;
       case shared.UnitTypeEnum.LEVER:
-        unit = new Lever(data);
+        unit = new Lever(data, this);
         break;
       case shared.UnitTypeEnum.TELEPORTENTRANCE:
         unit = new TeleportEntrance(data, this);
@@ -404,7 +409,7 @@ var WorldHandler = Class.extend({
         data.roty = data.data.rotY;
         data.rotz = data.data.rotZ;
 
-        unit = new Sign(data);
+        unit = new Sign(data, this);
         break;
       case shared.UnitTypeEnum.LOOTABLE:
 
@@ -419,7 +424,7 @@ var WorldHandler = Class.extend({
         unit = new HeartPiece(data);
         break;
       default:
-        unit = new Unit(data);
+        unit = new Unit(data, worldHandler);
         break;
     }
 

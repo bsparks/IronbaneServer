@@ -18,6 +18,7 @@
 var MovingUnit = require('./MovingUnit');
 var StateMachine = require('./AI/StateMachine');
 var EmptyState = require('./AI/states/EmptyState');
+var _ = require('underscore');
 var Actor = MovingUnit.extend({
   init: function(data, worldHandler) {
 
@@ -82,7 +83,7 @@ var Actor = MovingUnit.extend({
     // First, find a "home" node from where we'll build our list
     var closestNode = null;
     var distance = Math.pow(50, 2);
-    var allNodes = worldHandler.allNodes[this.zone];
+    var allNodes = this.worldHandler.allNodes[this.zone];
 
     _.each(allNodes, function(node) {
       var measuredDistance = DistanceSq(node.pos, this.position);
