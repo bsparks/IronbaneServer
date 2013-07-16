@@ -16,9 +16,9 @@
 */
 var Unit = require('../Unit');
 var TeleportEntrance = Unit.extend({
-    init: function(data) {
+    init: function(data, worldHandler) {
 
-        this._super(data);
+        this._super(data, worldHandler);
 
 
         // Prevent from being used immediately

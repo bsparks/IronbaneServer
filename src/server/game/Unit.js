@@ -16,24 +16,31 @@
 */
 
 var Class = require('../../common/class');
-var Unit = Class.extend({
-  init: function(data) {
+var SetDataAll = require('../External/Util').SetDataAll;
+var cellSize = require('../External/Shared').cellSize;
+var _ = require('underscore');
+var Player = require('./Player');
 
+var WorldToCellCoordinates = require('../External/Util').WorldToCellCoordinates;
+var Unit = Class.extend({
+  init: function(data, worldHandler) {
+
+    //doesnt the inheritance class do this already?
     SetDataAll(this, data);
 
     // Physics...
     //
-
+    this.worldHandler = worldHandler;
     this.mass = 10.0;
 
     // Server-side velocity, is not sent to the client
-    this.velocity = new THREE.Vector3();
+    this.velocity = new Vector3();
 
     // a normalized vector pointing in the direction the entity is heading.
-    this.heading = new THREE.Vector3();
+    this.heading = new Vector3();
 
     //a vector perpendicular to the heading vector
-    this.side = new THREE.Vector3();
+    this.side = new Vector3();
 
     //the maximum speed at which this entity may travel.
     this.maxSpeed = 5.0;
@@ -50,14 +57,14 @@ var Unit = Class.extend({
 
     // Make additional properties
 
-    this.position = new THREE.Vector3(this.x, this.y, this.z);
-    this.localPosition = new THREE.Vector3();
+    this.position = new Vector3(this.x, this.y, this.z);
+    this.localPosition = new Vector3();
 
     this.rotx = this.rotx === undefined ? 0 : this.rotx;
     this.roty = this.roty === undefined ? 0 : this.roty;
     this.rotz = this.rotz === undefined ? 0 : this.rotz;
 
-    this.rotation = new THREE.Vector3(this.rotx, this.roty, this.rotz);
+    this.rotation = new Vector3(this.rotx, this.roty, this.rotz);
 
     // Convert zone to int
     this.zone = parseInt(this.zone, 10);
@@ -85,12 +92,12 @@ var Unit = Class.extend({
 
     this.standingOnUnitId = 0;
 
-    if ( worldHandler.CheckWorldStructure(this.zone, this.cellX, this.cellZ) ) {
-      worldHandler.world[this.zone][this.cellX][this.cellZ].units.push(this);
+    if ( this.worldHandler.CheckWorldStructure(this.zone, this.cellX, this.cellZ) ) {
+      this.worldHandler.world[this.zone][this.cellX][this.cellZ].units.push(this);
     }
     else {
       // We are in a bad cell??? Find a place to spawn! Or DC
-      log("Bad cell found for "+this.id);
+      console.log("Bad cell found for "+this.id);
 
       if ( this.id > 0 && this.editor ) {
           log("...but I'm generating one because he's an editor.");
@@ -161,7 +168,7 @@ var Unit = Class.extend({
     }
   },
   UpdateNearbyUnitsOtherUnitsLists: function() {
-    worldHandler.UpdateNearbyUnitsOtherUnitsLists(this.zone, this.cellX, this.cellZ);
+    this.worldHandler.UpdateNearbyUnitsOtherUnitsLists(this.zone, this.cellX, this.cellZ);
   },
   UpdateCellPosition: function() {
 
@@ -298,8 +305,8 @@ var Unit = Class.extend({
 
     for(var x=cx-1;x<=cx+1;x++){
       for(var z=cz-1;z<=cz+1;z++){
-        if ( worldHandler.CheckWorldStructure(this.zone, x, z) ) {
-          _.each(worldHandler.world[this.zone][x][z].units, function(unit) {
+        if ( this.worldHandler.CheckWorldStructure(this.zone, x, z) ) {
+          _.each(this.worldHandler.world[this.zone][x][z].units, function(unit) {
             if ( unit !== this ) secondList.push(unit);
           }, this);
         }

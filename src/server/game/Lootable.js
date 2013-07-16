@@ -15,14 +15,17 @@
     along with Ironbane MMO.  If not, see <http://www.gnu.org/licenses/>.
 */
 var Unit = require('./Unit');
+var WasLucky100 = require('../External/Util').WasLucky100
+var _ = require('underscore');
 var Lootable = Unit.extend({
     lifeTime: 0,
-    init: function(data, loadItems) {
-        this._super(data);
+    init: function(data, loadItems, worldHandler) {
+        this._super(data, worldHandler);
+
 
         // HACKY HACKY!!! See NPC
         // Set to the default template values
-        if (!ISDEF(this.param)) {
+        if (_.isUndefined(this.param)) {
           this.param = this.template.param;
         }
         // END HACKY

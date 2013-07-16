@@ -15,7 +15,7 @@
     along with Ironbane MMO.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+var State = require('../State')
 var EmptyState = State.extend({
 	init: function() {
 	
@@ -38,3 +38,4 @@ var EmptyState = State.extend({
             
         }
 });
+module.exports = EmptyState;

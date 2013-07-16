@@ -17,14 +17,15 @@
 
 
 var Fighter = require('./Fighter');
+var _ = require('underscore');
 var NPC = Fighter.extend({
-    init: function(data) {
+    init: function(data, worldHandler) {
 
 
 
 
 
-        this._super(data);
+        this._super(data, worldHandler);
 
         // HACKY HACKY!!! See LootBag
 
@@ -69,12 +70,13 @@ var NPC = Fighter.extend({
         this.weapons = [];
         this.loot = [];
         this.weapon = null;
+        var me = this;
 
         // Store the weapons and loot
         if (!_.isEmpty(this.template.weapons)) {
             var weaponSplit = this.template.weapons.split(",");
             for (var w = 0; w < weaponSplit.length; w++) {
-                this.weapons.push(dataHandler.items[parseInt(weaponSplit[w], 10)]);
+                this.weapons.push(me.worldHandler.dataHandler.items[parseInt(weaponSplit[w], 10)]);
             }
 
             if (this.weapons.length > 0) {

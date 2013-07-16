@@ -16,19 +16,20 @@
 */
 
 var Unit = require('./Unit');
+var SteeringBehaviour = require('./SteeringBehaviour');
 var MovingUnit = Unit.extend({
-    init: function(data) {
+    init: function(data, worldHandler) {
 
 
-        this._super(data);
+        this._super(data, worldHandler);
 
         //the steering behavior class
         this.steeringBehaviour = new SteeringBehaviour(this);
 
         // this.testTimer = 0.0;
-        this.targetPosition = new THREE.Vector3();
+        this.targetPosition = new Vector3();
 
-        this.steeringForce = new THREE.Vector3();
+        this.steeringForce = new Vector3();
 
 
 

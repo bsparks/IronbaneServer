@@ -21,6 +21,8 @@ var Deceleration = {
     FAST:1
 };
 
+var Class = require('../../common/class');
+
 var SteeringBehaviour = Class.extend({
     init: function(unit) {
         this.unit = unit;
@@ -28,14 +30,14 @@ var SteeringBehaviour = Class.extend({
 
         this.targetUnit = null;
 
-        this.steeringForce = new THREE.Vector3();
+        this.steeringForce = new Vector3();
 
 
 		// Wander
 		this.wanderRadius = 5.2;
 		this.wanderDistance = 2.0;
 		this.wanderJitter = 180.0;
-		this.wanderTarget = new THREE.Vector3();
+		this.wanderTarget = new Vector3();
     },
     Calculate: function() {
         this.steeringForce.set(0,0,0);
@@ -107,11 +109,11 @@ var SteeringBehaviour = Class.extend({
 		return (dot - 1.0) * -coefficient;
 	},
     ResetWander: function() {
-        this.wanderTarget = new THREE.Vector3();
+        this.wanderTarget = new Vector3();
     },
 	Wander: function() {
 
-		this.wanderTarget.addSelf(new THREE.Vector3(RandomClamped() * this.wanderJitter,
+		this.wanderTarget.addSelf(new Vector3(RandomClamped() * this.wanderJitter,
 		0,
 		RandomClamped() * this.wanderJitter));
 
@@ -134,3 +136,4 @@ var SteeringBehaviour = Class.extend({
 		return Arrive(midPoint, Deceleration.FAST);
 	}
 });
+module.exports = SteeringBehaviour;

@@ -15,7 +15,7 @@
     along with Ironbane MMO.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+var Class = require('../../../common/class');
 var State = Class.extend({
 	init: function() {
 
@@ -38,3 +38,4 @@ var State = Class.extend({
 
     }
 });
+module.exports = State

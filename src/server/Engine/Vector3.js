@@ -90,7 +90,7 @@ Vector3.prototype = {
 
 	clone: function () {
 
-		return new THREE.Vector3( this.x, this.y, this.z );
+		return new Vector3( this.x, this.y, this.z );
 
 	},
 
@@ -288,7 +288,7 @@ Vector3.prototype = {
 
 	distanceToSquared: function ( v ) {
 
-		return new THREE.Vector3().sub( this, v ).lengthSq();
+		return new Vector3().sub( this, v ).lengthSq();
 
 	},
 

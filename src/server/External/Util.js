@@ -12,6 +12,8 @@ function SetDataAll(obj, data) {
   }
 }
 
+module.exports.SetDataAll = SetDataAll;
+
 function CheckData(obj, names) {
   if ( !ISDEF(obj) ) return false;
   if ( !obj ) return false;
@@ -31,6 +33,7 @@ function CheckVector(obj) {
 
 // Generic cell functions
 // Cells are supposed to be numbered next to eachother
+module.exports.WorldToCellCoordinates = WorldToCellCoordinates;
 function WorldToCellCoordinates(x, z, cellsize) {
 
   if ( cellsize % 2 != 0 ) console.error("Cellsize not dividable by 2!");
@@ -182,6 +185,7 @@ function WasLucky(maxchance) {
 function WasLucky100(chance) {
   return chance >= mt_rand(1, 100);
 }
+module.exports.WasLucky100 =WasLucky100;
 
 function mt_rand (min, max) {
   // Returns a random number from Mersenne Twister

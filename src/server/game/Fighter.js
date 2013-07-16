@@ -654,4 +654,4 @@ var Fighter = Actor.extend({
     return null;
   }
 });
-module.exports = Actor;
+module.exports = Fighter;

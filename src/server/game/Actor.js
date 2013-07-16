@@ -16,10 +16,12 @@
 */
 
 var MovingUnit = require('./MovingUnit');
+var StateMachine = require('./AI/StateMachine');
+var EmptyState = require('./AI/states/EmptyState');
 var Actor = MovingUnit.extend({
-  init: function(data) {
+  init: function(data, worldHandler) {
 
-    this._super(data);
+    this._super(data, worldHandler);
 
     this.stateMachine = new StateMachine(this, new EmptyState(), new EmptyState());
 

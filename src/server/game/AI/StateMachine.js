@@ -16,7 +16,7 @@
 */
 
 
-
+var Class = require('../../../common/class');
 var StateMachine = Class.extend({
 	init: function(owner, currentState, globalState) {
 
@@ -68,3 +68,4 @@ var StateMachine = Class.extend({
     }
 
 });
+module.exports = StateMachine;

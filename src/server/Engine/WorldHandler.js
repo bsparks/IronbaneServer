@@ -362,7 +362,7 @@ var WorldHandler = Class.extend({
       case shared.UnitTypeEnum.TURRET_STRAIGHT:
       case shared.UnitTypeEnum.TURRET_KILLABLE:
       case shared.UnitTypeEnum.WANDERER:
-        unit = new NPC(data);
+        unit = new NPC(data, this);
         break;
       case shared.UnitTypeEnum.MOVINGOBSTACLE:
 
@@ -380,7 +380,7 @@ var WorldHandler = Class.extend({
         data.roty = data.data.rotY;
         data.rotz = data.data.rotZ;
 
-        unit = new ToggleableObstacle(data);
+        unit = new ToggleableObstacle(data, this);
         break;
       case shared.UnitTypeEnum.TRAIN:
         unit = new Train(data);
@@ -389,10 +389,10 @@ var WorldHandler = Class.extend({
         unit = new Lever(data);
         break;
       case shared.UnitTypeEnum.TELEPORTENTRANCE:
-        unit = new TeleportEntrance(data);
+        unit = new TeleportEntrance(data, this);
         break;
       case shared.UnitTypeEnum.TELEPORTEXIT:
-        unit = new TeleportExit(data);
+        unit = new TeleportExit(data, this);
         break;
       case shared.UnitTypeEnum.MUSICPLAYER:
         unit = new MusicPlayer(data);
@@ -413,7 +413,7 @@ var WorldHandler = Class.extend({
         data.roty = data.data.rotY;
         data.rotz = data.data.rotZ;
 
-        unit = new Lootable(data, true);
+        unit = new Lootable(data, true, this);
         break;
       case shared.UnitTypeEnum.HEARTPIECE:
         unit = new HeartPiece(data);
@@ -671,9 +671,9 @@ var WorldHandler = Class.extend({
   UpdateNearbyUnitsOtherUnitsLists: function(zone, cellX, cellZ) {
     for(var x=cellX-1;x<=cellX+1;x++){
       for(var z=cellZ-1;z<=cellZ+1;z++){
-        if ( worldHandler.CheckWorldStructure(zone, x, z) ) {
-          for(var u=0;u<worldHandler.world[zone][x][z].units.length;u++) {
-            worldHandler.world[zone][x][z].units[u].UpdateOtherUnitsList();
+        if ( this.CheckWorldStructure(zone, x, z) ) {
+          for(var u=0;u<this.world[zone][x][z].units.length;u++) {
+            this.world[zone][x][z].units[u].UpdateOtherUnitsList();
           }
         }
       }
