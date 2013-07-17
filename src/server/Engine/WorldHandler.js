@@ -31,31 +31,38 @@ Actor = require('../Game/Actor'),
 _ = require('underscore'),
 events = require('events'),
 q = require('q'),
+qfs = require('q-io/fs'),
     sys = require('sys'),
 CellToWorldCoordinates = require('../External/Util').CellToWorldCoordinates,
 fs = require('fs');
 
 sys.inherits(Class, events.EventEmitter);
 var WorldHandler = Class.extend({
-  init: function(db, dataHandler) {
-    this.mysql = db;
-    this.dataHandler = dataHandler;
-    console.log("creating the worldHandler");
+    init: function(db, dataHandler) {
+        var worldHandler = this;
 
-    this.dataPath = config.get('clientDir') + 'plugins/game/data';
-    // World structure
-    // [zone][cx][cz]
-    this.world = {};
+        this.mysql = db;
+        this.dataHandler = dataHandler;
+        console.log("creating the worldHandler");
 
-    this.allNodes = {};
+        this.dataPath = config.get('clientDir') + 'plugins/game/data';
+        // World structure
+        // [zone][cx][cz]
+        this.world = {};
 
-    this.switches = {};
+        this.allNodes = {};
 
-    this.hasLoadedWorld = false;
-    this.LoadWorldLight();
+        this.switches = {};
 
-   
-  },
+        this.hasLoadedWorld = false;
+
+        this.LoadWorldLight().then(function() {
+            console.log('load world success');
+            worldHandler.hasLoadedWorld = true;
+        }, function(err) {
+            console.error('error loading world: ', err);
+        });
+    },
   Awake: function() {
 
 
@@ -171,76 +178,71 @@ var WorldHandler = Class.extend({
     if ( !_.isUndefined(cz) && _.isUndefined(this.world[zone][cx][cz]) ) return false;
     return true;
   },
-  BuildWorldStructure: function(zone, cx, cz) {
-    if ( !_.isUndefined(zone) && _.isUndefined(this.world[zone]) ) this.world[zone] = {};
-    if ( !_.isUndefined(cx) && _.isUndefined(this.world[zone][cx]) ) this.world[zone][cx] = {};
-    if ( !_.isUndefined(cz) && _.isUndefined(this.world[zone][cx][cz]) ) this.world[zone][cx][cz] = {};
-  },
-  LoadWorldLight: function() {
-    var worldHandler = this;
-    this.world = {};
-    dataPath = this.dataPath;
-    var promises = [];
-    wrench.readdirRecursive(dataPath, function(err, results) {
-      //console.log(results);
-      if (err) throw err;
-      if (results === null) return;
-      var rl = results.length;
-      for (var r=0;r<rl;r++) {
-      var deferred = q.defer();
-      promises.push(deferred);
-      //console.log(r);
-       // console.log(promises)
-        results[r] = results[r].replace(dataPath+"\\", "");
-
-        var data = results[r].split("\\");
-       //log(data);
-
-        var zone = parseInt(data[0], 10);
-        var cx = parseInt(data[1], 10);
-        var cz = parseInt(data[2], 10);
-
-        var file = data[3];
-        if ( !_.isNumber(zone) ) continue;
-        if ( !_.isNumber(cx) ) continue;
-        if ( !_.isNumber(cz) ) continue;
-        worldHandler.BuildWorldStructure(zone, cx, cz);
-
-        // Load navigation graph, even in a light world because we need it
-        if ( file == "graph.json" ) {
-          try {
-            var path = dataPath+"/"+zone+"/"+cx+"/"+cz;
-            var stats = fs.lstatSync(path+"/graph.json");
-
-            if (stats.isFile()) {
-              worldHandler.world[zone][cx][cz].graph = JSON.parse(fs.readFileSync(path+"/graph.json", 'utf8'));
-              deferred.resolve();
-            }
-          }
-          catch (e) {
-            throw e;
-          }
+    BuildWorldStructure: function(zone, cx, cz) {
+        if (!_.isUndefined(zone) && _.isUndefined(this.world[zone])) {
+            this.world[zone] = {};
         }
+        if (!_.isUndefined(cx) && _.isUndefined(this.world[zone][cx])) {
+            this.world[zone][cx] = {};
+        }
+        if (!_.isUndefined(cz) && _.isUndefined(this.world[zone][cx][cz])) {
+            this.world[zone][cx][cz] = {};
+        }
+    },
+    LoadWorldLight: function() {
+        var worldHandler = this;
+        this.world = {};
 
+        // grab all the files, skip directories
+        return qfs.listTree(worldHandler.dataPath, function (path, stat) {
+                return !stat.isDirectory();
+            })
+            .then(function(files) {
+                var filePromises = [];
 
-        if ( file !== "objects.json" ) continue;
+                files.forEach(function(path) {
+                    var working = qfs.relativeFromDirectory(worldHandler.dataPath, path),
+                        parts = qfs.split(working),
+                        zone = parseInt(parts[0], 10),
+                        cx = parseInt(parts[1], 10),
+                        cz = parseInt(parts[2], 10),
+                        file = parts[3];
 
-        worldHandler.world[zone][cx][cz].objects = [];
-        worldHandler.world[zone][cx][cz].units = [];
-        worldHandler.world[zone][cx][cz].hasLoadedUnits = false;
+                    //console.log('found file: ', zone, cx, cz, file);
 
+                    worldHandler.BuildWorldStructure(zone, cx, cz);
 
-        worldHandler.LoadUnits(zone, cx, cz);
-      }
+                    // if objects.json then we just load stuff from the db?
+                    if(file === 'objects.json') {
+                        worldHandler.world[zone][cx][cz].objects = [];
+                        worldHandler.world[zone][cx][cz].units = [];
+                        worldHandler.world[zone][cx][cz].hasLoadedUnits = false;
+                        filePromises.push(worldHandler.LoadUnits(zone, cx, cz).then(function(units) {
+                            //console.log('loaded cell: ', zone, cx, cz, 'units: ', units.length);
+                            worldHandler.world[zone][cx][cz].hasLoadedUnits = true;
+                            worldHandler.world[zone][cx][cz].units = units;
 
-        //console.log("Loaded zone "+zone);
+                            return worldHandler.world[zone][cx][cz];
+                        }, function(err) {
+                            return q.reject('error loading units: ' + err);
+                        }));
+                    }
 
-    });
-console.log("-----> "+promises.length)
- return q.all(promises);
+                    // if this is graph.json we load that
+                    if(file === 'graph.json') {
+                      filePromises.push(qfs.read(path).then(function(contents) {
+                          worldHandler.world[zone][cx][cz].graph = JSON.parse(contents);
+                          return worldHandler.world[zone][cx][cz];
+                      }, function(err) {
+                          return q.reject('error loading graph: ' + err);
+                      }));
+                    }
+                });
 
-
-  },
+                //console.log('filePromises: ', filePromises.length);
+                return q.all(filePromises);
+            });
+    },
   LoopUnits: function(fn) {
     this.LoopCells(function(cell) {
       if ( !_.isUndefined(cell.units) ) {
@@ -312,29 +314,33 @@ console.log("-----> "+promises.length)
 
 
   },
-  LoadUnits: function(zone, cellX, cellZ) {
+    LoadUnits: function(zone, cellX, cellZ) {
+        var worldHandler = this,
+            deferred = q.defer(),
+            worldPos = CellToWorldCoordinates(cellX, cellZ, shared.cellSize),
+            cellSizeHalf = shared.cellSize / 2;
 
-    var worldPos = CellToWorldCoordinates(cellX, cellZ, shared.cellSize);
-    
-    var worldHandler = this;
-    var cellSizeHalf = shared.cellSize/2;
-      this.mysql.query('SELECT * FROM ib_units WHERE zone = ? AND x > ? AND z > ? AND x < ? AND z < ?',
-        [zone,(worldPos.x-cellSizeHalf),(worldPos.z-cellSizeHalf),(worldPos.x+cellSizeHalf),(worldPos.z+cellSizeHalf)],
-        function (err, results, fields) {
+        worldHandler.mysql.query('SELECT * FROM ib_units WHERE zone = ? AND x > ? AND z > ? AND x < ? AND z < ?', [
+            zone, (worldPos.x - cellSizeHalf), (worldPos.z - cellSizeHalf),
+            (worldPos.x + cellSizeHalf), (worldPos.z + cellSizeHalf)
+            ], function(err, results) {
 
-          if (err) throw err;
+            if (err) {
+                deferred.reject('db error loading units for cell(' + zone + '/' + cellX + '/' + cellZ + ': ' + err.code);
+                return;
+            }
 
-          _.each(results, function(unitdata) {
-            worldHandler.MakeUnitFromData(unitdata);
-          });
+            var units = [];
 
-          worldHandler.world[zone][cellX][cellZ].hasLoadedUnits = true;
+            _.each(results, function(unitdata) {
+                units.push(worldHandler.MakeUnitFromData(unitdata));
+            });
 
+            deferred.resolve(units);
         });
 
-
-
-  },
+        return deferred.promise;
+    },
   MakeUnitFromData: function(data) {
     data.id = -data.id;
 
@@ -799,7 +805,7 @@ console.log("-----> "+promises.length)
     return ++worldHandler.world[zone].waypointIDCount;
   }
 
-  
+
 }
 );
 
