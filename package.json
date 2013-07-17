@@ -1,7 +1,7 @@
 {
-  "name": "IronbaneServer",
-  "version": "0.1.7",
-  "description": "The server for Ironbane, the open source MMO.",
+  "name": "ironbane",
+  "version": "0.3.0",
+  "description": "Ironbane, the open source browser MMO.",
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -15,7 +15,9 @@
     "mmo",
     "retro",
     "nodejs",
-    "rpg"
+    "rpg",
+    "webGL",
+    "html5"
   ],
   "author": "Nick Janssen",
   "license": "GPL",
@@ -23,6 +25,34 @@
   "dependencies": {
     "socket.io": "~0.9.14",
     "mysql": "~2.0.0-alpha8",
-    "wrench": "~1.5.1"
+    "wrench": "~1.5.1",
+    "express": "~3.2.4",
+    "underscore": "~1.4.4",
+    "bbcode": "~0.1.2",
+    "passport": "~0.1.17",
+    "passport-local": "~0.1.6",
+    "bcrypt-nodejs": "0.0.3",
+    "marked": "~0.2.8",
+    "nconf": "~0.6.7",
+    "validator": "~1.2.0",
+    "q": "~0.9.4",
+    "hogan-express": "~0.3.3",
+    "gm": "~1.10.0",
+    "connect-mysql": "~0.2.7",
+    "express.io": "~1.1.12",
+    "nodetime": "~0.8.13"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-jshint": "~0.5.3",
+    "grunt-contrib-less": "~0.5.1",
+    "grunt-contrib-uglify": "~0.2.0",
+    "grunt-contrib-clean": "~0.4.1",
+    "grunt-contrib-copy": "~0.4.1",
+    "grunt-replace": "~0.4.4",
+    "grunt-contrib-jasmine": "~0.4.2",
+    "grunt-contrib-watch": "~0.4.3",
+    "grunt-beep": "~0.2.0"
   }
 }

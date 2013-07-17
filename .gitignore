@@ -5,5 +5,7 @@ tools/
 node_modules/
 *.sublime-project
 *.sublime-workspace
-config.js
+config.json
 thumbs.db
+deploy/
+media/

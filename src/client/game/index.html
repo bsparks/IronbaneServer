@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Ironbane MMO</title>
+
+    <base href="@@root/" />
+
+    <link rel="stylesheet" type="text/css" href="@@root/css/@@appName.css">
+    <link rel="stylesheet" type="text/css" href="@@root/lib/jquery/plugins/jquery.jscrollpane.css">
+
+    <!-- todo: automate libs? -->
+    <script src="@@root/lib/game_shim/game-shim.js"></script>
+    <script src="@@root/lib/jquery/1.7.1/jquery-1.7.1.min.js"></script>
+    <script src="@@root/lib/jquery/plugins/jquery-ui-1.8.22.custom.min.js"></script>
+    <script src="@@root/lib/jquery/plugins/jquery.mousewheel.js"></script>
+    <script src="@@root/lib/jquery/plugins/jquery.jscrollpane.min.js"></script>
+    <script src="@@root/lib/angular/1.1.5/angular.min.js"></script>
+    <script src="@@root/lib/angular/1.1.5/angular-sanitize.min.js"></script>
+    <script src="@@root/lib/three/Three_r52.js"></script>
+    <script src="@@root/lib/three/ThreeOctree.js"></script>
+    <script src="@@root/lib/sound_manager_2/soundmanager2-nodebug-jsmin.js"></script>
+    <script src="@@root/lib/dat_gui/dat.gui.js"></script>
+    <script src="@@root/lib/three/Detector.js"></script>
+    <script src="@@root/lib/underscore/underscore-min.js"></script>
+    <script src="@@root/lib/tween/tween.min.js"></script>
+
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body ng-app="Ironbane">
+    <!-- contents of frame.html from old client -->
+    <div id="loadingBar" style="display:none">
+        <img src="@@root/media/images/misc/loading.gif"><div class="spacersmall"></div>Loading...
+    </div>
+    <div id="gameFrame" style="opacity:0">
+        <div id="dropItemsBox"></div>
+        <div id="bigMessagesBox"></div>
+        <div id="loginBox">
+            <div id="logo" style="display:none"></div>
+            <div id="versionNumber" style="display:none">
+                <div class="bigoutline">@@gameVersion</div>
+            </div>
+            <div class="spacer"></div>
+            <div id="loginContainer">
+                <div id="loginContent"></div>
+                <div id="noWebGL">
+                    <div id="hquote"></div>
+                    <div class="spacersmall"></div>
+                    <div class="gen">It appears your browser does not support WebGL, or it is not enabled.<div class="spacersmall"></div><div id="webglsolution"></div></div>
+                    <div class="spacer"></div>
+                </div>
+                <div id="serverDownDisconnect">
+                    <div class="spacer"></div>
+                    <h2>The server disconnected!<br></h2>
+                </div>
+            </div>
+            <div class="spacer"></div>
+        </div>
+
+        <div id="alertBox" style="display:none">
+            <div id="alertImage"></div>
+            <div id="alertMessage">Sample alert message</div>
+            <div id="alertOK">
+                <button id="btnOK" class="ibutton" style="width:100px;">Okay</button>
+                <button id="btnNo" class="ibutton" style="width:100px;">No way</button>
+            </div>
+        </div>
+
+        <news-pane id="devNews" style="display:none;"></news-pane>
+
+        <div id="chatBox">
+            <chat-window id="chatContent"></chat-window>
+            <div id="chatInputBox">
+                <input type="text" name="chatInput" id="chatInput" class="iinput">
+            </div>
+        </div>
+
+        <div id="statBar">
+            <div id="healthBar"></div>
+            <div id="armorBar"></div>
+        </div>
+        <div id="coinBar"></div>
+        <div id="itemBar"></div>
+        <div id="lootBag"></div>
+        <div id="debugBox"></div>
+        <div id="soundToggleBox">
+            <button id="btnToggleSound" class="ibutton" style="width:40px"></button>
+        </div>
+        <div id="book">
+            <div id="bookPageLeft" class="bookPage"></div>
+            <div id="bookPageRight" class="bookPage"></div>
+            <div id="bookFooterLeft" class="bookFooter"></div>
+            <div id="bookFooterRight" class="bookFooter"></div>
+        </div>
+        <div id="map">
+            <canvas id="mapCanvas" width="768" height="768"></canvas>
+        </div>
+        <div id="tileSelectBox">
+            <div id="selectRange" class="gensmall"></div>
+            <div id="editormessage" style="font-size:10px;width:100%;height:30px"></div>
+            <div id="tileList" style="background-color:gray"></div>
+        </div>
+        <button id="bogusButton">Bogus</button>
+        <div id="tooltip"></div>
+        <div id="black-bar-top"></div>
+        <div id="black-bar-bottom"></div>
+        <div id="editorControls"></div>
+    </div>
+
+    <script>
+        var startdata = {
+            user: {{userId}},
+            name: "{{username}}",
+            loggedIn: {{loggedIn}},
+            characterUsed: {{characterUsed}},
+            using_ie: false,
+            using_safari: false
+        };
+
+        var ironbane_hostname = "@@host";
+        var ironbane_port = "@@port";
+        var ironbane_root_directory = "@@root";
+
+        var hquote = "Sweet llamas of the Bahamas!";
+
+        var isEditor = false;
+        var debugging = false;
+
+        var preCatsTiles = {{{preCatsTiles}}};
+        var items = {{{items}}};
+        var units = {{{units}}};
+        var unitTemplates = {{{unitTemplates}}};
+        var ModelEnum = {{{modelEnum}}};
+        var preMeshes = {{{preMeshes}}};
+        var zones = {{{zones}}};
+        var zoneSelection = {{{zoneSelection}}};
+
+        var newsPosts = '';
+        var charCount = 0;
+        var chars = [];
+    </script>
+    {{{shaders}}}
+    <script src="@@root/js/@@appName-@@appVersion.js"></script>
+</body>
+</html>

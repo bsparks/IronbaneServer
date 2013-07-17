@@ -14,203 +14,212 @@
     You should have received a copy of the GNU General Public License
     along with Ironbane MMO.  If not, see <http://www.gnu.org/licenses/>.
 */
+var config = require('./nconf');
 
-// Config variables
+var isProduction = config.get('isProduction');
+var cryptSalt = config.get('cryptSalt');
 
-var config = require('./config');
+// profiling...
+if (isProduction && config.get('use_nodetime')) {
+    require('nodetime').profile(config.get('nodetime'));
+}
 
-// Mysql config
-var mysql_user = config.mysql_user;
-var mysql_password = config.mysql_password;
-var mysql_database = config.mysql_database;
-var clientDir = config.clientDir;
+var pkg = require('./package.json'),
+    log = require('util').log; // built in timestampped logger
+
+var clientDir = config.get('clientDir');
+
+if (!cryptSalt) {
+    throw "No password hash set!";
+}
 
 // System start
 var SERVER = true;
-var params = { log: 0 };
 
-//
-// For running locally, don't use for production
-params.log = 0;
-params['close timeout'] = 86400;
-params['heartbeat timeout'] = 86400;
-params['heartbeat interval'] = 86400;
-params['polling duration'] = 86400;
-//
-
-var io = require('socket.io').listen(config.server_port, params);
-var mmysql = require('mysql');
 var fs = require('fs');
 var spawn = require('child_process').spawn;
 var window = {};
 
 // Custom
-var NameGen = require('./External/namegen');
+var NameGen = require('./src/server/External/namegen');
 var wrench = require('wrench');
 var util = require('util');
+var crypto = require('crypto');
 
-var fsi = require('./External/fsi.js');
-var check = require('./External/validator.js').check;
-var sanitize = require('./External/validator.js').sanitize
-var _ = require('./External/underscore-min.js');
+var fsi = require('./src/server/External/fsi.js');
+
+// https://github.com/chriso/node-validator
+var check = require('validator').check,
+    sanitize = require('validator').sanitize;
+
+var _ = require('underscore');
 
 // Everything runs on one database, since the db is not hurt that bad by performance
 // We cut the middle man and only use mysql occasionally to save/load data
-
-// Start MySQL
-var mysql = mmysql.createConnection({
-    user: mysql_user,
-    password: mysql_password,
-    database: mysql_database
+// Start MySQL - has to be here for global access below...
+var mysql = require('mysql').createConnection({
+    host: config.get('mysql_host'),
+    user: config.get('mysql_user'),
+    password: config.get('mysql_password'),
+    database: config.get('mysql_database')
     //insecureAuth:false
 });
 
+process.on('uncaughtException', function(e) {
+    debugger;
+    console.log(e.stack);
+});
+
+var includes = [
+    /*'./src/server/Engine/Vector3.js',
+    './src/server/Engine/Util.js',
+    './Init.js',
+    './src/server/External/Shared.js',
+    './src/server/External/Util.js',
+    './src/server/External/NodeHandler.js',
+    './src/server/External/perlin.js',
+    './src/server/External/ImprovedNoise.js',
+    './src/server/Engine/ConsoleCommand.js',
+    './src/server/Engine/ConsoleHandler.js',
+    './src/server/Engine/Switch.js',
+    './src/server/Engine/SocketHandler.js',
+    './src/server/Engine/WorldHandler.js',
+    './src/server/Engine/DataHandler.js',
+    './src/server/Engine/ChatHandler.js',
+    './src/server/Game/AI/graph.js',
+    './src/server/Game/AI/astar.js',
+    './src/server/Game/AI/Telegram.js',
+    './src/server/Game/AI/MessageDispatcher.js',
+    './src/server/Game/AI/State.js',
+    './src/server/Game/AI/StateMachine.js',
+    './src/server/Game/AI/MonsterScripts.js',
+    './src/server/Game/AI/States/ChaseEnemy.js',
+    './src/server/Game/AI/States/ExploreAndLookForEnemies.js',
+    './src/server/Game/AI/States/NPCGlobalState.js',
+    './src/server/Game/AI/States/EmptyState.js',
+    './src/server/Game/AI/States/SellMerchandise.js',
+    './src/server/Game/AI/States/Turret.js',
+    './src/server/Game/AI/States/TurretStraight.js',
+    './src/server/Game/AI/States/TurretKillable.js',
+    './src/server/Game/AI/States/Wander.js',
+    './src/server/Game/item.js',
+    './src/server/Game/SteeringBehaviour.js',
+    './src/server/Game/Unit.js',
+    './src/server/Game/MovingUnit.js',
+    './src/server/Game/Actor.js',
+    './src/server/Game/Fighter.js',
+    './src/server/Game/NPC.js',
+    './src/server/Game/Lootable.js',
+    './src/server/Game/Player.js',
+    './src/server/Game/Special/MovingObstacle.js',
+    './src/server/Game/Special/ToggleableObstacle.js',
+    './src/server/Game/Special/Train.js',
+    './src/server/Game/Special/Lever.js',
+    './src/server/Game/Special/TeleportEntrance.js',
+    './src/server/Game/Special/TeleportExit.js',
+    './src/server/Game/Special/Sign.js',
+    './src/server/Game/Special/HeartPiece.js',
+    './src/server/Game/Special/MusicPlayer.js',
+    */
+    //'./Server.js'
+];
+
+// create game server, do it first so that the other 2 "servers" can query it
+// create express.io server
+var HttpServer = require('./src/server/http/server').Server,
+    httpServer = new HttpServer();
+
+// for the global access coming...todo: refactor
+var io = httpServer.server.io,
+    ioApp = httpServer.server;
+
+
+var IronbaneGame = require('./src/server/game')(mysql, io);
+
+// load these files AFTER the servers as they rely on some global stuff from them
+//for (var f = 0; f < includes.length; f++) {
+ //   log("Loading: " + includes[f]);
+//    eval(fs.readFileSync(includes[f]) + '');
+//}
+//var _server = require('./Server');
+  //  IronbaneGame.server = new _server();
+    //IronbaneGame.server.engine = IronbaneGame;
+// this replaces MainLoop, must go here since server hasn't been defined earlier...
+//IronbaneGame.on('tick', function(elapsed) {
+    // eventually we wouldn't be accessing the global var here...
+  //  IronbaneGame.server.Tick(elapsed);
+//});
+
 // Necessary to prevent 'Mysql has gone away' errors
 // Use it check for restarting on git push
-setInterval(keepAlive, 10000);
 var shuttingDown = false;
 function keepAlive() {
     //mysql.query('SELECT 1');
-    if ( shuttingDown ) return;
+    if (shuttingDown) {
+        return;
+    }
 
-    mysql.query('SELECT value FROM ib_config WHERE name = ?', ["restart"], function (err, results, fields) {
-        if (err) throw err;
+    mysql.query('SELECT value FROM ib_config WHERE name = ?', ["restart"], function(err, results, fields) {
+        if (err) {
+            throw err;
+        }
 
-        if ( results.length ) {
+        if (results.length) {
             shuttingDown = true;
 
             chatHandler.Announce("&lt;Server&gt; New update available!", "red");
             chatHandler.Announce("&lt;Server&gt; Auto-restarting in 10 seconds...", "red");
 
+            // Disconnect all clients first
+            io.sockets.emit("disconnect");
+
             setTimeout(function() {
-                mysql.query('DELETE FROM ib_config WHERE name = ?', ["restart"], function (err, results, fields) {
-                    if (err) throw err;
+                mysql.query('DELETE FROM ib_config WHERE name = ?', ["restart"], function(err, results, fields) {
+                    if (err) {
+                        throw err;
+                    }
 
                     process.exit();
                 });
-            }, 10000);
+            }, 20000);
         }
 
     });
     return;
 }
+setInterval(keepAlive, 10000);
+/*
+setInterval(function autoSave() {
+    log("Auto-saving all players...");
+    worldHandler.LoopUnits(function(unit) {
+        if (unit instanceof Player) {
+            unit.Save();
+        }
+    });
+}, 60 * 1 * 1000);
+*/
+// setup REPL for console server mgmt
+var startREPL = function() {
+    var repl = require('repl'); // native node
 
-var includes = [
+    // Not game stuff, this is for the server executable
+    process.stdin.setEncoding('utf8');
 
-    './Engine/Vector3.js',
-    './Engine/Util.js',
+    // startup a full node repl for javascript awesomeness
+    var serverREPL = repl.start({
+        prompt: "ironbane> ",
+        input: process.stdin,
+        output: process.stdout
+    });
 
-    './Init.js',
+    serverREPL.on('exit', function() {
+        // todo: other shutdown stuff, like stop db, etc.
+        process.exit();
+    });
 
-
-    clientDir+'plugins/game/js/External/Shared.js',
-    clientDir+'plugins/game/js/External/Util.js',
-    clientDir+'plugins/game/js/External/NodeHandler.js',
-
-    './External/perlin.js',
-
-    clientDir+'plugins/game/js/External/ImprovedNoise.js',
-
-
-    './Engine/ConsoleCommand.js',
-    './Engine/ConsoleHandler.js',
-
-    './Engine/Switch.js',
-
-    './Engine/SocketHandler.js',
-    './Engine/WorldHandler.js',
-    './Engine/DataHandler.js',
-    './Engine/ChatHandler.js',
-
-    './Game/AI/graph.js',
-    './Game/AI/astar.js',
-    './Game/AI/Telegram.js',
-    './Game/AI/MessageDispatcher.js',
-    './Game/AI/State.js',
-    './Game/AI/StateMachine.js',
-
-    './Game/AI/MonsterScripts.js',
-
-    './Game/AI/States/ChaseEnemy.js',
-    './Game/AI/States/ExploreAndLookForEnemies.js',
-    './Game/AI/States/NPCGlobalState.js',
-    './Game/AI/States/EmptyState.js',
-    './Game/AI/States/SellMerchandise.js',
-    './Game/AI/States/Turret.js',
-    './Game/AI/States/TurretStraight.js',
-    './Game/AI/States/TurretKillable.js',
-    './Game/AI/States/Wander.js',
-
-
-    './Game/SteeringBehaviour.js',
-    './Game/Unit.js',
-    './Game/MovingUnit.js',
-    './Game/Actor.js',
-    './Game/Fighter.js',
-    './Game/NPC.js',
-    './Game/Lootable.js',
-    './Game/Player.js',
-
-    './Game/Special/MovingObstacle.js',
-    './Game/Special/ToggleableObstacle.js',
-    './Game/Special/Train.js',
-    './Game/Special/Lever.js',
-    './Game/Special/TeleportEntrance.js',
-    './Game/Special/TeleportExit.js',
-    './Game/Special/Sign.js',
-    './Game/Special/HeartPiece.js',
-    './Game/Special/MusicPlayer.js',
-
-    './Server.js'
-
-
-];
-
-for(var f=0;f<includes.length;f++){
-	log("Loading: "+includes[f]);
-    eval(fs.readFileSync(includes[f])+'');
-}
-
-function log(msg) {
-    console.log("["+(new Date()).toLocaleTimeString()+"] "+msg)    ;
-}
-
-
-process.stdin.resume();
-process.stdin.setEncoding('utf8');
-
-process.stdin.on('data', function (text) {
-	consoleHandler.Exec(text);
-});
-
-
-
-var oldTime = 0.0;
-var dTime = 0.0;
-var totalTimer = 0.0;
-
-var endTime = 0;
-
-
-// Main loop
-function MainLoop() {
-
-    setTimeout(function(){
-        MainLoop()
-    }, 100);
-
-    var now = (new Date()).getTime();
-    dTime = (now-oldTime)/1000.0;//time diff in seconds
-    if ( dTime > 0.3 ) dTime = 0.3;
-    oldTime=now;
-
-	var startTime = (new Date()).getTime();
-
-    //setTimeout(function(){log(NameGen(3, 8, "", ""))}, 1000);
-    server.Tick(dTime);
-
-	endTime = (new Date()).getTime() - startTime;
-}
-
-MainLoop();
-
+    // context variables get attached to "global" of this instance
+    serverREPL.context.version = pkg.version;
+    serverREPL.context.httpServer = httpServer;
+};
+// start it up, todo: only per config?
+startREPL();

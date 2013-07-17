@@ -14,8 +14,7 @@
     You should have received a copy of the GNU General Public License
     along with Ironbane MMO.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-
+var Class = require('./src/common/class');
 var Server = Class.extend({
     Init: function() {
 
@@ -25,28 +24,26 @@ var Server = Class.extend({
         this.npcIDCount = -1;
         this.itemIDCount = -1;
 
-        mysql.query('SELECT id FROM ib_units ORDER BY id DESC',
+        mysql.query('SELECT MAX(id) as id FROM ib_units',
             function (err, result) {
-                if ( result.length == 0 ) {
+                if ( result.length === 0 ) {
                     server.npcIDCount = 0;
                 }
                 else {
-                    server.npcIDCount = result[0]["id"];
+                    server.npcIDCount = result[0].id;
                 }
             });
-        mysql.query('SELECT id FROM ib_items ORDER BY id DESC',
+        mysql.query('SELECT MAX(id) as id FROM ib_items ORDER BY id DESC',
             function (err, result) {
                 if ( result.length == 0 ) {
                     server.itemIDCount = 0;
                 }
                 else {
-                    server.itemIDCount = result[0]["id"];
+                    server.itemIDCount = result[0].id;
                 }
             });
 
         this.versionWarningTimer = 10.0;
-
-
 
         this.startTime = (new Date()).getTime();
 
@@ -77,7 +74,7 @@ var Server = Class.extend({
 
 
 
-        setTimeout(function(){server.AutoBackup();}, 300 * 1000);
+        //setTimeout(function(){server.AutoBackup();}, 3600 * 24 * 1000);
 
     },
     AutoBackup: function() {
@@ -109,9 +106,16 @@ var Server = Class.extend({
                     "Welcome to Ironbane! Server uptime: "+timeSince(((new Date()).getTime()/1000.0)-(this.startTime/1000.0))+"<br>"+
                     "Note that Ironbane is still in an early Alpha stage.<br>Please report all bugs in the forum!",
 
-                    "Are you an artist? A sound/music composer? A 3D modeler?<br>"+
+                    "Are you a programmer? An artist? A 3D modeler?<br>"+
                     "Would you like to work on an exciting project with a cool team?<br>"+
-                    "Send me an e-mail at nikke@ironbane.com now!"
+                    "Give us a shout in the forums!",
+
+                    "Follow us on Twitter! @IronbaneMMO",
+
+                    "Join us on IRC! #ironbane on chat.freenode.net",
+
+                    "Ironbane is open source! Care to help out?<br>"+
+                    "Check out the Get Involved page on the website!"
 
                 ]);
 
@@ -125,7 +129,7 @@ var Server = Class.extend({
 
         //log(dTime);
 
-        worldHandler.Tick(dTime);
+        this.engine.worldHandler.Tick(dTime);
 
         // Tick and send out snapshot
         // First build the snapshot
@@ -146,13 +150,13 @@ var Server = Class.extend({
         // io.sockets.emit("snapshot", snapshot);
 
 
-        for(var z in worldHandler.world) {
-            for(var cx in worldHandler.world[z]) {
-                for(var cz in worldHandler.world[z][cx]) {
+        for(var z in this.engine.worldHandler.world) {
+            for(var cx in this.engine.worldHandler.world[z]) {
+                for(var cz in this.engine.worldHandler.world[z][cx]) {
 
-                    if ( ISDEF(worldHandler.world[z][cx][cz]["units"]) ) {
+                    if ( ISDEF(this.engine.worldHandler.world[z][cx][cz]["units"]) ) {
 
-                        var units = worldHandler.world[z][cx][cz]["units"];
+                        var units = this.engine.worldHandler.world[z][cx][cz]["units"];
 
                         for(var u=0;u<units.length;u++) {
 
@@ -167,20 +171,15 @@ var Server = Class.extend({
                 }
             }
         }
-
-
-
-
-
         // Loop through all connected players in every cell and send each player an update of their otherUnits
 
-        for(var z in worldHandler.world) {
-            for(var cx in worldHandler.world[z]) {
-                for(var cz in worldHandler.world[z][cx]) {
+        for(var z in this.engine.worldHandler.world) {
+            for(var cx in this.engine.worldHandler.world[z]) {
+                for(var cz in this.engine.worldHandler.world[z][cx]) {
 
-                    if ( ISDEF(worldHandler.world[z][cx][cz]["units"]) ) {
+                    if ( ISDEF(this.engine.worldHandler.world[z][cx][cz]["units"]) ) {
 
-                        var units = worldHandler.world[z][cx][cz]["units"];
+                        var units = this.engine.worldHandler.world[z][cx][cz]["units"];
 
                         //log(units);
 
@@ -229,14 +228,14 @@ var Server = Class.extend({
 
                                 var packet = {
                                     id:id,
-                                    p:pos
+                                    p:pos.Round(2)
                                     };
 
                                 if ( ud.standingOnUnitId ) {
                                     packet.u = ud.standingOnUnitId;
 
                                     // Send our local position instead!
-                                    packet.p = ud.localPosition;
+                                    packet.p = ud.localPosition.Round(2);
                                 }
 
 
@@ -249,27 +248,15 @@ var Server = Class.extend({
 
                                 }
 
-
-
-
-
-
-
-                                if ( ud.sendRotationPacketX ) packet.rx = ud.rotation.x;
-                                if ( ud.sendRotationPacketY ) packet.ry = ud.rotation.y;
-                                if ( ud.sendRotationPacketZ ) packet.rz = ud.rotation.z;
-
-
-
-
-
-
+                                if ( ud.sendRotationPacketX ) packet.rx = ud.rotation.x.Round();
+                                if ( ud.sendRotationPacketY ) packet.ry = ud.rotation.y.Round();
+                                if ( ud.sendRotationPacketZ ) packet.rz = ud.rotation.z.Round();
                                 snapshot.push(packet);
 
                             }
 
 
-                            if ( snapshot.length == 0 ) continue;
+                            if ( snapshot.length === 0 ) continue;
 
 
                             units[u].socket.emit("snapshot", snapshot);
@@ -288,4 +275,5 @@ var Server = Class.extend({
     }
 });
 
-var server = new Server();
+
+module.exports = Server;
